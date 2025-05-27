@@ -1,4 +1,4 @@
-import { Image } from 'expo-image';
+/*import { Image } from 'expo-image';
 import { Platform, StyleSheet } from 'react-native';
 
 import { HelloWave } from '@/components/HelloWave';
@@ -72,4 +72,14 @@ const styles = StyleSheet.create({
     left: 0,
     position: 'absolute',
   },
-});
+}); */
+import React from 'react';
+import { Text, View } from 'react-native';
+
+export default function TabsHome() {
+  return (
+    <View>
+      <Text>Tab Home (Dashboard vs. buraya gelir)</Text>
+    </View>
+  );
+}
