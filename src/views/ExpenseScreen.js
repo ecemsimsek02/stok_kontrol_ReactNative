@@ -1,17 +1,18 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+import Layout from "../components/Layout.js";
 
 import {
-    Alert,
-    Button,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Button,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 const ExpensePage = () => {
@@ -26,7 +27,7 @@ const ExpensePage = () => {
   });
   const [token, setToken] = useState(null);
 
-  const API_URL = "http://192.168.99.3:8000/cash/expenses/";
+  const API_URL = "http://192.168.1.33:8000/cash/expenses/";
 
   useEffect(() => {
     const getTokenAndFetch = async () => {
@@ -136,6 +137,7 @@ const ExpensePage = () => {
   };
 
   return (
+    <Layout>
     <View style={styles.container}>
       <Text style={styles.title}>Expenses</Text>
 
@@ -202,6 +204,7 @@ const ExpensePage = () => {
         </View>
       </Modal>
     </View>
+    </Layout>
   );
 };
 

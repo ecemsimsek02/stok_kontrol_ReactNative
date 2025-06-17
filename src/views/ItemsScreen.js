@@ -3,15 +3,16 @@ import { Picker } from "@react-native-picker/picker";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Button,
-    FlatList,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Button,
+  FlatList,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
+import Layout from "../components/Layout.js";
 
 const ItemsScreen =  () => {
   const [items, setItems] = useState([]);
@@ -67,7 +68,7 @@ useEffect(() => {
  const fetchItems = async () => {
   try {
     const headers = await getAuthHeaders();
-    const response = await axios.get("http://192.168.99.3:8000/store/api/items/", headers);
+    const response = await axios.get("http://192.168.1.33:8000/store/api/items/", headers);
     setItems(response.data);
   } catch (error) {
     console.error("Item verileri alınamadı:", error);
@@ -76,7 +77,7 @@ useEffect(() => {
 const fetchCategories = async () => {
   try {
     const headers = await getAuthHeaders();
-    const response = await axios.get("http://192.168.99.3:8000/store/api/categories/", headers);
+    const response = await axios.get("http://192.168.1.33:8000/store/api/categories/", headers);
     setCategories(response.data);
   } catch (error) {
     console.error("Category verileri alınamadı:", error);
@@ -90,13 +91,13 @@ const fetchCategories = async () => {
 
     if (editingItemId) {
       await axios.put(
-        `http://192.168.99.3:8000/store/api/items/${editingItemId}/`,
+        `http://192.168.1.33:8000/store/api/items/${editingItemId}/`,
         newItem,
         headers
       );
     } else {
       await axios.post(
-        "http://192.168.99.3:8000/store/api/items/",
+        "http://192.168.1.33:8000/store/api/items/",
         newItem,
         headers
       );
@@ -125,7 +126,7 @@ const handleDeleteItem = async (id) => {
     const headers = await getAuthHeaders();
 
     await axios.delete(
-      `http://192.168.99.3:8000/store/api/items/${id}/`,
+      `http://192.168.1.33:8000/store/api/items/${id}/`,
       headers
     );
     fetchItems();
@@ -145,6 +146,7 @@ const handleDeleteItem = async (id) => {
 
 
   return (
+    <Layout>
     <View style={styles.container}>
       <Text style={styles.header}>
         {editingItemId ? "Item Güncelle" : "Yeni Item"}
@@ -211,6 +213,7 @@ const handleDeleteItem = async (id) => {
         )}
       />
     </View>
+    </Layout>
   );
 };
 

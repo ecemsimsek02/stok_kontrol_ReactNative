@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-
+import Layout from "../components/Layout.js";
 export default function CustomersScreen() {
   const [customers, setCustomers] = useState([]);
   const [newCustomer, setNewCustomer] = useState({
@@ -28,7 +28,7 @@ export default function CustomersScreen() {
 
     try {
       const response = await axios.get(
-        'http://192.168.99.3:8000/accounts/api/customers/',
+        'http://192.168.1.33:8000/accounts/api/customers/',
         {
           headers: { Authorization: `Token ${token}` },
         }
@@ -48,8 +48,8 @@ export default function CustomersScreen() {
     if (!token) return;
 
     const url = editingCustomerId
-      ? `http://192.168.99.3:8000/accounts/customers/${editingCustomerId}/update/`
-      : 'http://192.168.99.3:8000/accounts/customers/create/';
+      ? `http://192.168.1.33:8000/accounts/customers/${editingCustomerId}/update/`
+      : 'http://192.168.1.33:8000/accounts/customers/create/';
 
     try {
       await axios({
@@ -80,12 +80,14 @@ export default function CustomersScreen() {
 
     try {
       await axios.delete(
-        `http://192.168.99.3:8000/accounts/customers/${id}/delete/`,
+        `http://192.168.1.33:8000/accounts/customers/${id}/delete/`,
         { headers: { Authorization: `Token ${token}` } }
       );
-      fetchCustomers();
+      setTimeout(() => {
+  fetchCustomers();
+}, 500);
     } catch (error) {
-      console.error('Müşteri silinemedi:', error);
+      console.error('Müşteri silinemedi:', error.response?.status, error.response?.data, error.message);
     }
   };
 
@@ -102,6 +104,7 @@ export default function CustomersScreen() {
   };
 
   return (
+    <Layout>
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.header}>Müşteri Listesi</Text>
 
@@ -168,6 +171,7 @@ export default function CustomersScreen() {
         onPress={handleCreateOrUpdate}
       />
     </ScrollView>
+    </Layout>
   );
 }
 

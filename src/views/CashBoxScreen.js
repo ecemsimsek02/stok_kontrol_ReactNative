@@ -5,19 +5,20 @@ import { Picker } from '@react-native-picker/picker';
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import {
-    Alert,
-    Button,
-    FlatList,
-    Modal,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Button,
+  FlatList,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import Layout from "../components/Layout.js";
 
 const getUserRole = async () => {
   try {
@@ -56,8 +57,8 @@ const CashboxPage = () => {
   const [role, setRole] = useState(null);
   const [token, setToken] = useState(null);
 
-  const API_URL = "http://192.168.99.3:8000/cash/transactions/";
-  const REGISTER_API = "http://192.168.99.3:8000/cash/cash_registers/";
+  const API_URL = "http://192.168.1.33:8000/cash/transactions/";
+  const REGISTER_API = "http://192.168.1.33:8000/cash/cash_registers/";
 
 useEffect(() => {
   const loadData = async () => {
@@ -212,6 +213,7 @@ useEffect(() => {
 
 
   return (
+    <Layout>
     <ScrollView style={styles.container}>
 
       <Text style={styles.title}>Cash Transactions</Text>
@@ -465,6 +467,7 @@ useEffect(() => {
         </View>
       </Modal>
     </ScrollView>
+    </Layout>
   );
 };
 

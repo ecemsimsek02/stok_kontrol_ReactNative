@@ -2,10 +2,10 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Button, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-
+import Layout from "../components/Layout.js";
 const VendorsScreen = () => {
   const [vendors, setVendors] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,7 +18,7 @@ const VendorsScreen = () => {
     const token = await AsyncStorage.getItem("access_token");
     if (!token) return;
     try {
-      const res = await axios.get('http://192.168.99.3:8000/accounts/api/vendors/', {
+      const res = await axios.get('http://192.168.1.33:8000/accounts/api/vendors/', {
         headers: { Authorization: `Token ${token}` },
       });
       setVendors(res.data);
@@ -32,8 +32,8 @@ const VendorsScreen = () => {
   const handleSaveVendor = async () => {
     const token = await AsyncStorage.getItem("access_token");
     const url = editingVendorId
-      ? `http://192.168.99.3:8000/accounts/vendors/${editingVendorId}/update/`
-      : 'http://192.168.99.3:8000/accounts/vendors/new/';
+      ? `http://192.168.1.33:8000/accounts/vendors/${editingVendorId}/update/`
+      : 'http://192.168.1.33:8000/accounts/vendors/new/';
 
     try {
       if (editingVendorId) {
@@ -51,15 +51,30 @@ const VendorsScreen = () => {
 
   const handleDeleteVendor = async (id) => {
     const token = await AsyncStorage.getItem("access_token");
-    try {
-      await axios.delete(`http://192.168.99.3:8000/accounts/vendors/${id}/delete/`, {
-        headers: { Authorization: `Token ${token}` },
-      });
-      fetchVendors();
-    } catch {
-      Alert.alert('Hata', 'Silinemedi');
+      if (!token) {
+    Alert.alert("Hata", "Token bulunamadı!");
+    return;
+  }
+     try {
+    const response = await axios.delete(`http://192.168.1.33:8000/accounts/vendors/${id}/delete/`, {
+      headers: { Authorization: `Token ${token}` },
+    });
+
+    console.log("Delete response:", response.status, response.data);
+
+      setTimeout(() => {
+  fetchVendors();
+}, 500);
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      Alert.alert("Bilgi", "Kayıt zaten silinmiş.");
+      await fetchVendors();
+    } else {
+      console.error("Delete error:", error.response || error.message || error);
+      Alert.alert("Hata", "Silinemedi");
     }
-  };
+  }
+};
 
   useEffect(() => {
     fetchVendors();
@@ -70,6 +85,7 @@ const VendorsScreen = () => {
   }
 
   return (
+    <Layout>
     <View style={styles.container}>
       <Text style={styles.header}>Vendor Ekle / Güncelle</Text>
       <TextInput
@@ -112,6 +128,7 @@ const VendorsScreen = () => {
         )}
       />
     </View>
+    </Layout>
   );
 };
 

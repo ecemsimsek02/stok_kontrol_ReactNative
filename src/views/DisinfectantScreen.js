@@ -3,15 +3,16 @@ import { Picker } from "@react-native-picker/picker";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import {
-    Alert,
-    FlatList,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  FlatList,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
+import Layout from "../components/Layout.js";
 
 const DisinfectantScreen = () => {
   const [disinfectants, setDisinfectants] = useState([]);
@@ -47,7 +48,7 @@ const DisinfectantScreen = () => {
   const fetchDisinfectants = async (tk) => {
     try {
       const res = await axios.get(
-        "http://192.168.99.3:8000/stocks/api/disinfectants/",
+        "http://192.168.1.33:8000/stocks/api/disinfectants/",
         {
           headers: { Authorization: `Token ${tk}` },
         }
@@ -67,8 +68,8 @@ const DisinfectantScreen = () => {
       };
 
       const url = editingId
-        ? `http://192.168.99.3:8000/stocks/api/disinfectants/${editingId}/`
-        : "http://192.168.99.3:8000/stocks/api/disinfectants/";
+        ? `http://192.168.1.33:8000/stocks/api/disinfectants/${editingId}/`
+        : "http://192.168.1.33:8000/stocks/api/disinfectants/";
 
       const method = editingId ? axios.put : axios.post;
 
@@ -96,7 +97,7 @@ const DisinfectantScreen = () => {
   const handleDelete = async (id) => {
     try {
       await axios.delete(
-        `http://192.168.99.3:8000/stocks/api/disinfectants/${id}/`,
+        `http://192.168.1.33:8000/stocks/api/disinfectants/${id}/`,
         {
           headers: { Authorization: `Token ${token}` },
         }
@@ -110,7 +111,7 @@ const DisinfectantScreen = () => {
   const handleProduce = async () => {
     try {
       await axios.post(
-        "http://192.168.99.3:8000/stocks/api/produce/",
+        "http://192.168.1.33:8000/stocks/api/produce/",
         {
           disinfectant_id: selectedDisinfectantId,
           quantity_to_produce: parseFloat(productionAmount),
@@ -128,6 +129,7 @@ const DisinfectantScreen = () => {
   };
 
   return (
+    <Layout>
     <ScrollView style={{ padding: 16 }}>
       <Text style={styles.header}>Dezenfektan Listesi</Text>
 
@@ -212,6 +214,7 @@ const DisinfectantScreen = () => {
         <Text style={styles.buttonText}>Üret</Text>
       </TouchableOpacity>
     </ScrollView>
+    </Layout>
   );
 };
 

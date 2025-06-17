@@ -20,7 +20,7 @@ const { width } = Dimensions.get("window");
 const LoginPage = () => {
   const { login } = useContext(AuthContext);
   useEffect(() => {
-  fetch("http://192.168.99.3:8000/")
+  fetch("http://192.168.1.33:8000/")
     .then(res => console.log("Sunucu çalışıyor!", res.status))
     .catch(err => console.log("Sunucuya erişilemiyor:", err.message));
 }, []);
@@ -33,7 +33,7 @@ const LoginPage = () => {
   const handleLogin = async () => {
   try {
     const response = await axios.post(
-      "http://192.168.99.3:8000/api-token-auth/",
+      "http://192.168.1.33:8000/api-token-auth/",
       {
         username,
         password,
@@ -46,7 +46,7 @@ const LoginPage = () => {
 
     // PROFİL BİLGİLERİ AL
     const profileResponse = await axios.get(
-      "http://192.168.99.3:8000/accounts/api/profiles/",
+      "http://192.168.1.33:8000/accounts/api/profiles/",
       {
         headers: {
           Authorization: `Token ${token}`,

@@ -20,13 +20,13 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     try {
-      await axios.post("http://192.168.99.3:8000/accounts/register/", {
+      await axios.post("http://192.168.1.33:8000/accounts/register/", {
         username,
         password,
       });
 
       const tokenResponse = await axios.post(
-        "http://192.168.99.3:8000/api-token-auth/",
+        "http://192.168.1.33:8000/api-token-auth/",
         { username, password },
       );
 

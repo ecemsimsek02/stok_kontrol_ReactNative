@@ -2,19 +2,20 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Button,
-    FlatList,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  Button,
+  FlatList,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
+import Layout from "../components/Layout.js";
 
 const BillsScreen = () => {
   const [bills, setBills] = useState([]);
@@ -56,7 +57,7 @@ const BillsScreen = () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        "http://192.168.99.3:8000/bills/api/bills/",
+        "http://192.168.1.33:8000/bills/api/bills/",
         {
           headers: {
             Authorization: `Token ${tk}`,
@@ -111,14 +112,14 @@ const BillsScreen = () => {
     try {
       if (editingBill) {
         await axios.put(
-          `http://192.168.99.3:8000/bills/api/bills/${editingBill.id}/`,
+          `http://192.168.1.33:8000/bills/api/bills/${editingBill.id}/`,
           formData,
           {
             headers: { Authorization: `Token ${token}` },
           }
         );
       } else {
-        await axios.post("http://192.168.99.3:8000/bills/api/bills/", formData, {
+        await axios.post("http://192.168.1.33:8000/bills/api/bills/", formData, {
           headers: { Authorization: `Token ${token}` },
         });
       }
@@ -136,7 +137,7 @@ const BillsScreen = () => {
       return;
     }
     try {
-      await axios.delete(`http://192.168.99.3:8000/bills/api/bills/${id}/`, {
+      await axios.delete(`http://192.168.1.33:8000/bills/api/bills/${id}/`, {
         headers: { Authorization: `Token ${token}` },
       });
       fetchBills(token);
@@ -176,6 +177,7 @@ const BillsScreen = () => {
   );
 
   return (
+    <Layout>
     <View style={styles.container}>
       <Text style={styles.header}>Faturalar</Text>
       <Button title="Fatura Ekle" onPress={() => openModal()} />
@@ -231,6 +233,7 @@ const BillsScreen = () => {
         </View>
       </Modal>
     </View>
+    </Layout>
   );
 };
 

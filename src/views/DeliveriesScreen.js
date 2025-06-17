@@ -1,265 +1,276 @@
-import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Picker } from "@react-native-picker/picker";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import {
-    Alert,
-    Button,
-    FlatList,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  FlatList,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
+import Layout from "../components/Layout.js";
 
-const DeliveriesPage = () => {
-  const [deliveries, setDeliveries] = useState([]);
+const DisinfectantScreen = () => {
+  const [disinfectants, setDisinfectants] = useState([]);
   const [formData, setFormData] = useState({
-    item: "",
-    customer_name: "",
-    phone_number: "",
-    location: "",
-    date: "",
-    is_delivered: false,
+    name: "",
+    quantity_in_stock: "",
+    min_stock_level: "",
   });
   const [editingId, setEditingId] = useState(null);
   const [token, setToken] = useState(null);
+  const [selectedDisinfectantId, setSelectedDisinfectantId] = useState(null);
+  const [productionAmount, setProductionAmount] = useState("");
 
-useEffect(() => {
-    const loadTokenAndFetch = async () => {
-      try {
-        const storedToken = await AsyncStorage.getItem("access_token");
-        if (!storedToken) {
-          Alert.alert("Hata", "Token bulunamadı!");
-          return;
-        }
-        setToken(storedToken);
-        await fetchDeliveries(storedToken);
-      } catch (error) {
-        console.error("Token alınırken hata:", error);
-      }
-    };
 
-    loadTokenAndFetch();
+   useEffect(() => {
+    getTokenAndFetch();
   }, []);
 
-
- const fetchDeliveries = async (accessToken) => {
+  const getTokenAndFetch = async () => {
     try {
-      const res = await axios.get(
-        "http://192.168.99.3:8000/store/api/deliveries/",
-        {
-          headers: {
-            Authorization: `Token ${accessToken}`,
-          },
-        }
-      );
-      setDeliveries(res.data);
+      const storedToken = await AsyncStorage.getItem("access_token");
+      if (storedToken) {
+        setToken(storedToken);
+        fetchDisinfectants(storedToken);
+      } else {
+        Alert.alert("Hata", "Token bulunamadı.");
+      }
     } catch (err) {
-      console.error("Teslimat verisi alınamadı:", err);
+      console.error("Token alınamadı:", err);
     }
   };
 
-
-  const handleChange = (name, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  const fetchDisinfectants = async (tk) => {
+    try {
+      const res = await axios.get(
+        "http://192.168.1.33:8000/stocks/api/disinfectants/",
+        {
+          headers: { Authorization: `Token ${tk}` },
+        }
+      );
+      setDisinfectants(res.data);
+    } catch (err) {
+      console.error("Veri alınamadı:", err);
+    }
   };
 
   const handleSubmit = async () => {
     try {
-      const headers = {
-        headers: {
-          Authorization: `Token ${token}`,
-        },
+      const data = {
+        name: formData.name,
+        quantity_in_stock: parseFloat(formData.quantity_in_stock),
+        min_stock_level: parseFloat(formData.min_stock_level),
       };
 
-      if (editingId) {
-        await axios.put(
-          `http://192.168.99.3:8000/store/api/deliveries/${editingId}/`,
-          formData,
-          headers
-        );
-        setEditingId(null);
-      } else {
-        await axios.post(
-          "http://192.168.99.3:8000/store/api/deliveries/",
-          formData,
-          headers
-        );
-      }
+      const url = editingId
+        ? `http://192.168.1.33:8000/stocks/api/disinfectants/${editingId}/`
+        : "http://192.168.1.33:8000/stocks/api/disinfectants/";
 
-      setFormData({
-        item: "",
-        customer_name: "",
-        phone_number: "",
-        location: "",
-        date: "",
-        is_delivered: false,
+      const method = editingId ? axios.put : axios.post;
+
+      await method(url, data, {
+        headers: { Authorization: `Token ${token}` },
       });
-       fetchDeliveries(token);
+
+      setFormData({ name: "", quantity_in_stock: "", min_stock_level: "" });
+      setEditingId(null);
+      fetchDisinfectants(token);
     } catch (err) {
       console.error("Kayıt hatası:", err);
     }
   };
 
-   const handleEdit = (delivery) => {
-    setEditingId(delivery.id);
+  const handleEdit = (d) => {
+    setEditingId(d.id);
     setFormData({
-      item: delivery.item,
-      customer_name: delivery.customer_name,
-      phone_number: delivery.phone_number,
-      location: delivery.location,
-      date: delivery.date?.split("T")[0] || "",
-      is_delivered: delivery.is_delivered,
+      name: d.name,
+      quantity_in_stock: d.quantity_in_stock.toString(),
+      min_stock_level: d.min_stock_level.toString(),
     });
   };
 
   const handleDelete = async (id) => {
     try {
       await axios.delete(
-        `http://192.168.99.3:8000/store/api/deliveries/${id}/`,
+        `http://192.168.1.33:8000/stocks/api/disinfectants/${id}/`,
         {
-          headers: {
-            Authorization: `Token ${token}`,
-          },
+          headers: { Authorization: `Token ${token}` },
         }
       );
-      fetchDeliveries(token);
+      fetchDisinfectants(token);
     } catch (err) {
       console.error("Silme hatası:", err);
     }
   };
 
-  const handleMarkDelivered = async (id) => {
+  const handleProduce = async () => {
     try {
-      await axios.get(
-        `http://192.168.99.3:8000/store/api/deliveries/${id}/mark_as_delivered/`,
+      await axios.post(
+        "http://192.168.1.33:8000/stocks/api/produce/",
         {
-          headers: {
-            Authorization: `Token ${token}`,
-          },
+          disinfectant_id: selectedDisinfectantId,
+          quantity_to_produce: parseFloat(productionAmount),
+        },
+        {
+          headers: { Authorization: `Token ${token}` },
         }
       );
-      fetchDeliveries(token);
+      Alert.alert("Başarılı", "Üretim tamamlandı!");
+      fetchDisinfectants(token);
     } catch (err) {
-      console.error("Teslim etme hatası:", err);
+      console.error("Üretim hatası:", err.response?.data || err);
+      Alert.alert("Hata", "Üretim başarısız!");
     }
   };
 
-
-  const renderItem = ({ item }) => (
-    <View style={styles.card}>
-      <Text style={styles.cardText}>
-        {item.customer_name} - {item.phone_number} ({item.location})
-      </Text>
-      <Text style={styles.cardSubText}>
-        Ürün ID: {item.item} | Tarih: {item.date?.split("T")[0]} |{" "}
-        Durum: {item.is_delivered ? "Teslim edildi" : "Bekliyor"}
-      </Text>
-      <View style={styles.actions}>
-        <TouchableOpacity onPress={() => handleEdit(item)}>
-          <MaterialIcons name="edit" size={24} color="black" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => handleDelete(item.id)}>
-          <MaterialIcons name="delete" size={24} color="red" />
-        </TouchableOpacity>
-        {!item.is_delivered && (
-          <TouchableOpacity onPress={() => handleMarkDelivered(item.id)}>
-            <MaterialIcons name="check" size={24} color="green" />
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
-  );
-  if (!token) return null;
-
   return (
-    <View style={styles.container}>
+    <Layout>
+    <ScrollView style={{ padding: 16 }}>
+      <Text style={styles.header}>Dezenfektan Listesi</Text>
 
-      <Text style={styles.title}>Teslimat Yönetimi</Text>
-
-      {["item", "customer_name", "phone_number", "location", "date"].map(
-        (field) => (
-          <TextInput
-            key={field}
-            style={styles.input}
-            placeholder={field.replace("_", " ").toUpperCase()}
-            value={formData[field]}
-            onChangeText={(text) => handleChange(field, text)}
-          />
-        )
-      )}
-
-      <Button
-        title={editingId ? "Güncelle" : "Ekle"}
-        onPress={handleSubmit}
-        color="#007BFF"
+      <TextInput
+        placeholder="Ad"
+        value={formData.name}
+        onChangeText={(text) => setFormData({ ...formData, name: text })}
+        style={styles.input}
       />
+      <TextInput
+        placeholder="Stok Miktarı"
+        value={formData.quantity_in_stock}
+        onChangeText={(text) =>
+          setFormData({ ...formData, quantity_in_stock: text })
+        }
+        keyboardType="numeric"
+        style={styles.input}
+      />
+      <TextInput
+        placeholder="Minimum Stok Seviyesi"
+        value={formData.min_stock_level}
+        onChangeText={(text) =>
+          setFormData({ ...formData, min_stock_level: text })
+        }
+        keyboardType="numeric"
+        style={styles.input}
+      />
+      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+        <Text style={styles.buttonText}>{editingId ? "Güncelle" : "Ekle"}</Text>
+      </TouchableOpacity>
 
-      <Text style={styles.subTitle}>Teslimatlar</Text>
+      <Text style={styles.header}>Kayıtlı Dezenfektanlar</Text>
 
       <FlatList
-        data={deliveries}
+        data={disinfectants}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={renderItem}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>{item.name}</Text>
+            <Text>Stok: {item.quantity_in_stock} L</Text>
+            <Text>Minimum Seviye: {item.min_stock_level} L</Text>
+            <View style={styles.cardActions}>
+              <TouchableOpacity onPress={() => handleEdit(item)}>
+                <Text style={styles.link}>Düzenle</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleDelete(item.id)}>
+                <Text style={styles.link}>Sil</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
       />
-    </View>
+
+      <Text style={styles.header}>Dezenfektan Üretimi</Text>
+
+      <Picker
+        selectedValue={selectedDisinfectantId}
+        onValueChange={(itemValue) => setSelectedDisinfectantId(itemValue)}
+        style={styles.picker}
+      >
+        <Picker.Item label="Seçiniz..." value={null} />
+        {disinfectants.map((d) => (
+          <Picker.Item key={d.id} label={d.name} value={d.id} />
+        ))}
+      </Picker>
+
+      <TextInput
+        placeholder="Üretim Miktarı (Litre)"
+        value={productionAmount}
+        onChangeText={(text) => setProductionAmount(text)}
+        keyboardType="numeric"
+        style={styles.input}
+      />
+      <TouchableOpacity
+        style={[
+          styles.button,
+          (!selectedDisinfectantId || !productionAmount) && styles.buttonDisabled,
+        ]}
+        onPress={handleProduce}
+        disabled={!selectedDisinfectantId || !productionAmount}
+      >
+        <Text style={styles.buttonText}>Üret</Text>
+      </TouchableOpacity>
+    </ScrollView>
+    </Layout>
   );
 };
 
-export default DeliveriesPage;
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
-  langSwitch: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginBottom: 12,
-  },
-  title: {
-    fontSize: 20,
-    marginVertical: 8,
-    fontWeight: "bold",
-  },
-  subTitle: {
-    fontSize: 18,
-    marginTop: 20,
-    marginBottom: 8,
-    fontWeight: "600",
-  },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
     padding: 10,
-    marginVertical: 6,
+    marginBottom: 12,
     borderRadius: 6,
+    borderColor: "#ccc",
   },
-  card: {
+  button: {
+    backgroundColor: "#007AFF",
     padding: 12,
-    marginVertical: 6,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    backgroundColor: "#f9f9f9",
+    alignItems: "center",
+    borderRadius: 6,
+    marginBottom: 20,
   },
-  cardText: {
+  buttonDisabled: {
+    backgroundColor: "#aaa",
+  },
+  buttonText: {
+    color: "#fff",
     fontWeight: "bold",
   },
-  cardSubText: {
-    fontSize: 12,
-    color: "#555",
-    marginTop: 4,
+  header: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 12,
+    marginTop: 20,
   },
-  actions: {
+  card: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    padding: 12,
+    marginBottom: 12,
+    borderRadius: 6,
+  },
+  cardTitle: {
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  cardActions: {
     flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 8,
-    justifyContent: "space-around",
+  },
+  link: {
+    color: "#007AFF",
+  },
+  picker: {
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 6,
   },
 });
+
+export default DisinfectantScreen;

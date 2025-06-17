@@ -3,14 +3,15 @@ import { Picker } from "@react-native-picker/picker";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  FlatList,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
+import Layout from "../components/Layout.js";
 
 const TransactionsScreen = () => {
   const [sales, setSales] = useState([]);
@@ -29,14 +30,14 @@ const TransactionsScreen = () => {
       };
 
       const [saleRes, invoiceRes, purchaseRes, billRes] = await Promise.all([
-        axios.get("http://192.168.99.3:8000/transactions/sale-transactions/", {
+        axios.get("http://192.168.1.33:8000/transactions/sale-transactions/", {
           headers,
         }),
-        axios.get("http://192.168.99.3:8000/invoice/api/invoices/", { headers }),
-        axios.get("http://192.168.99.3:8000/transactions/purchase-transactions/", {
+        axios.get("http://192.168.1.33:8000/invoice/api/invoices/", { headers }),
+        axios.get("http://192.168.1.33:8000/transactions/purchase-transactions/", {
           headers,
         }),
-        axios.get("http://192.168.99.3:8000/bills/api/bills/", { headers }),
+        axios.get("http://192.168.1.33:8000/bills/api/bills/", { headers }),
       ]);
 
       const invoiceMap = {};
@@ -73,8 +74,8 @@ const TransactionsScreen = () => {
       const token = await fetchToken();
       const url =
         type === "sale"
-          ? `http://192.168.99.3:8000/transactions/sale-transactions/${id}/`
-          : `http://192.168.99.3:8000/transactions/purchase-transactions/${id}/`;
+          ? `http://192.168.1.33:8000/transactions/sale-transactions/${id}/`
+          : `http://192.168.1.33:8000/transactions/purchase-transactions/${id}/`;
 
       await axios.patch(
         url,
@@ -189,6 +190,7 @@ const renderTransactionItem = ({ item, type }) => (
   if (loading) return <ActivityIndicator size="large" color="#0000ff" style={{ flex: 1 }} />;
 
   return (
+    <Layout>
     <SafeAreaView style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>Sales</Text>
@@ -207,6 +209,7 @@ const renderTransactionItem = ({ item, type }) => (
         />
       </ScrollView>
     </SafeAreaView>
+    </Layout>
   );
 };
 

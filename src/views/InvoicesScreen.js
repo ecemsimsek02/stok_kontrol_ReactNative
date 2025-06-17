@@ -2,9 +2,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import {
-    Alert, Button, Linking, Modal, ScrollView, StyleSheet, Text,
-    TextInput, View
+  Alert, Button, Linking, Modal, ScrollView, StyleSheet, Text,
+  TextInput, View
 } from 'react-native';
+import Layout from "../components/Layout.js";
 
 const InvoicesScreen = () => {
   const [invoices, setInvoices] = useState([]);
@@ -19,7 +20,7 @@ const InvoicesScreen = () => {
     quantity: "",
     shipping: "",
   });
-  const API_URL = "http://192.168.99.3:8000/invoice/api/invoices/";
+  const API_URL = "http://192.168.1.33:8000/invoice/api/invoices/";
 const getAuthHeaders = async () => {
   try {
     const token = await AsyncStorage.getItem("access_token");
@@ -137,6 +138,7 @@ const fetchInvoices = async () => {
   );
 
   return (
+    <Layout>
     <View style={styles.container}>
       <Text style={styles.title}>Siparişler</Text>
 
@@ -183,7 +185,7 @@ const fetchInvoices = async () => {
                 onPress={() =>
                   // React Native'de window.open yok, Linking kullanılabilir
                   // Bu örnek için Linking eklenmeli:
-                   Linking.openURL(`http://192.168.99.3:8000/invoice/pdf/${invoice.id}/`)
+                   Linking.openURL(`http://192.168.1.33:8000/invoice/pdf/${invoice.id}/`)
                   //Alert.alert("Not Implemented", "PDF indirme mobilde desteklenmiyor.")
                 }
               />
@@ -237,6 +239,7 @@ const fetchInvoices = async () => {
         </View>
       </Modal>
     </View>
+    </Layout>
   );
 };
 

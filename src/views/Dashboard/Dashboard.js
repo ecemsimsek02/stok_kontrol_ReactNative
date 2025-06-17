@@ -1,199 +1,22 @@
-/*import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
-import { useEffect, useState } from "react";
-import { Button, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-
-const DashboardScreen = () => {
-  const [materialData, setMaterialData] = useState([]);
-  const [disinfectantData, setDisinfectantData] = useState([]);
-  const [deliveries, setDeliveries] = useState([]);
-  const [tasks, setTasks] = useState([]);
-  const [newTaskText, setNewTaskText] = useState("");
-  const [editingIndex, setEditingIndex] = useState(null);
-  const [username, setUsername] = useState("");
-  const [token, setToken] = useState("");
-
-  useEffect(() => {
-    const fetchTokenAndData = async () => {
-      try {
-        const storedToken = await AsyncStorage.getItem("access_token");
-        if (storedToken) {
-          setToken(storedToken);
-          await fetchAllData(storedToken);
-        } else {
-          console.warn("Token bulunamadı");
-        }
-      } catch (err) {
-        console.error("Token alma hatası:", err);
-      }
-    };
-
-    fetchTokenAndData();
-  }, []);
-
-  const fetchAllData = async (token) => {
-    const authHeaders = {
-      headers: { Authorization: `Token ${token}` },
-    };
-
-    try {
-      const [materialsRes, disinfectantsRes, userRes, deliveriesRes] = await Promise.all([
-        axios.get("http://192.168.99.3:8000/stocks/api/materials/", authHeaders),
-        axios.get("http://192.168.99.3:8000/stocks/api/disinfectants/", authHeaders),
-        axios.get("http://192.168.99.3:8000/accounts/api/user/", authHeaders),
-        axios.get("http://192.168.99.3:8000/store/api/deliveries/", authHeaders),
-      ]);
-
-      setMaterialData(materialsRes.data);
-      setDisinfectantData(disinfectantsRes.data);
-      setUsername(userRes.data.username);
-
-      const pendingDeliveries = deliveriesRes.data.filter((d) => !d.is_delivered);
-      setDeliveries(pendingDeliveries);
-    } catch (err) {
-      console.error("Veriler alınamadı:", err);
-    }
-  };
-
-  const handleAddTask = () => {
-    if (!newTaskText.trim()) return;
-    if (editingIndex !== null) {
-      const updated = [...tasks];
-      updated[editingIndex].text = newTaskText;
-      setTasks(updated);
-      setEditingIndex(null);
-    } else {
-      setTasks([...tasks, { text: newTaskText, completed: false, addedBy: username }]);
-    }
-    setNewTaskText("");
-  };
-
-  const toggleComplete = (index) => {
-    const updated = [...tasks];
-    updated[index].completed = !updated[index].completed;
-    setTasks(updated);
-  };
-
-  const handleDeleteTask = (index) => {
-    const updated = tasks.filter((_, i) => i !== index);
-    setTasks(updated);
-  };
-
-  const handleEditTask = (index) => {
-    setNewTaskText(tasks[index].text);
-    setEditingIndex(index);
-  };
-
-  const handleMarkDelivered = async (id) => {
-    const authHeaders = {
-      headers: { Authorization: `Token ${token}` },
-    };
-
-    try {
-      await axios.get(`http://192.168.99.3:8000/store/api/deliveries/${id}/mark_as_delivered/`, authHeaders);
-      setDeliveries((prev) => prev.filter((d) => d.id !== id));
-    } catch (err) {
-      console.error("Teslimat hatası:", err);
-    }
-  };
-
-  return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>📦 Material Stocks</Text>
-      {materialData.map((m) => (
-        <Text key={m.id}>{m.name}: {m.quantity_in_stock} {m.unit}</Text>
-      ))}
-
-      <Text style={styles.header}>🧴 Disinfectant Stocks</Text>
-      {disinfectantData.map((d) => (
-        <Text key={d.id}>{d.name}: {d.quantity_in_stock}</Text>
-      ))}
-
-      <Text style={styles.header}>🚚 Bekleyen Teslimatlar</Text>
-      {deliveries.length === 0 ? (
-        <Text>Tüm teslimatlar tamamlandı.</Text>
-      ) : (
-        deliveries.map((delivery) => (
-          <TouchableOpacity key={delivery.id} onPress={() => handleMarkDelivered(delivery.id)}>
-            <Text>• {delivery.customer_name} - Ürün ID: {delivery.item}</Text>
-          </TouchableOpacity>
-        ))
-      )}
-
-      <Text style={styles.header}>📝 Görev Listesi</Text>
-      <View style={styles.taskInput}>
-        <TextInput
-          value={newTaskText}
-          onChangeText={setNewTaskText}
-          placeholder="Yeni görev"
-          style={styles.input}
-        />
-        <Button title={editingIndex !== null ? "Güncelle" : "Ekle"} onPress={handleAddTask} />
-      </View>
-      {tasks.map((task, index) => (
-        <View key={index} style={styles.taskItem}>
-          <TouchableOpacity onPress={() => toggleComplete(index)} style={{ flex: 1 }}>
-            <Text style={{ textDecorationLine: task.completed ? "line-through" : "none" }}>
-              {task.text} – {task.addedBy}
-            </Text>
-          </TouchableOpacity>
-          <Button title="D" onPress={() => handleDeleteTask(index)} />
-          <Button title="E" onPress={() => handleEditTask(index)} />
-        </View>
-      ))}
-    </ScrollView>
-  );
-};
-
-export default DashboardScreen;
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-  },
-  header: {
-    fontWeight: "bold",
-    fontSize: 18,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  taskInput: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 10,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 8,
-    flex: 1,
-    marginRight: 8,
-  },
-  taskItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 6,
-  },
-});
-*/
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import {
-    Dimensions,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { BarChart, PieChart } from "react-native-chart-kit";
 import { Checkbox } from "react-native-paper"; // react-native-paper kurulmalı
 import Icon from "react-native-vector-icons/MaterialIcons"; // react-native-vector-icons kurulmalı
 import AdminNavbarLinks from "../../components/AdminNavbarLinks";
-
 const screenWidth = Dimensions.get("window").width;
 
 const chartConfig = {
@@ -208,6 +31,7 @@ export default function Dashboard() {
   const [materialData, setMaterialData] = useState([]);
   const [disinfectantData, setDisinfectantData] = useState([]);
   const [tasks, setTasks] = useState([]);
+  const [taskNotifications, setTaskNotifications] = useState([]);
   const [newTaskText, setNewTaskText] = useState("");
   const [editingIndex, setEditingIndex] = useState(null);
   const [username, setUsername] = useState("");
@@ -215,7 +39,9 @@ export default function Dashboard() {
   const [notifications, setNotifications] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [token, setToken] = useState(null);
-
+  const [dueDate, setDueDate] = useState(null);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   useEffect(() => {
     AsyncStorage.getItem("access_token").then((storedToken) => {
       if (storedToken) {
@@ -232,8 +58,8 @@ export default function Dashboard() {
     const fetchMaterials = async () => {
       try {
         const res = await axios.get(
-          "http://192.168.99.3:8000/stocks/api/materials/",
-          authHeaders
+          "http://192.168.1.33:8000/stocks/api/materials/",
+          authHeaders,
         );
         setMaterialData(res.data);
       } catch (err) {
@@ -244,8 +70,8 @@ export default function Dashboard() {
     const fetchDisinfectants = async () => {
       try {
         const res = await axios.get(
-          "http://192.168.99.3:8000/stocks/api/disinfectants/",
-          authHeaders
+          "http://192.168.1.33:8000/stocks/api/disinfectants/",
+          authHeaders,
         );
         setDisinfectantData(res.data);
       } catch (err) {
@@ -256,8 +82,8 @@ export default function Dashboard() {
     const fetchUser = async () => {
       try {
         const res = await axios.get(
-          "http://192.168.99.3:8000/accounts/api/user/",
-          authHeaders
+          "http://192.168.1.33:8000/accounts/api/user/",
+          authHeaders,
         );
         setUsername(res.data.username);
       } catch (err) {
@@ -268,8 +94,8 @@ export default function Dashboard() {
     const fetchDeliveries = async () => {
       try {
         const res = await axios.get(
-          "http://192.168.99.3:8000/store/api/deliveries/",
-          authHeaders
+          "http://192.168.1.33:8000/store/api/deliveries/",
+          authHeaders,
         );
         const pending = res.data.filter((d) => !d.is_delivered);
         setDeliveries(pending);
@@ -281,8 +107,8 @@ export default function Dashboard() {
     const fetchNotifications = async () => {
       try {
         const res = await axios.get(
-          "http://192.168.99.3:8000/stocks/api/stock-alerts/",
-          authHeaders
+          "http://192.168.1.33:8000/stocks/api/stock-alerts/",
+          authHeaders,
         );
         if (Array.isArray(res.data.alerts)) {
           setNotifications(res.data.alerts);
@@ -297,8 +123,8 @@ export default function Dashboard() {
     const fetchTransactions = async () => {
       try {
         const response = await axios.get(
-          "http://192.168.99.3:8000/cash/transactions/",
-          authHeaders
+          "http://192.168.1.33:8000/cash/transactions/",
+          authHeaders,
         );
         setTransactions(response.data);
       } catch (error) {
@@ -348,22 +174,69 @@ export default function Dashboard() {
       },
     ],
   });
+  useEffect(() => {
+  AsyncStorage.setItem("tasks", JSON.stringify(tasks));
+}, [tasks]);
 
+// Görevleri geri yükle
+useEffect(() => {
+  const loadTasks = async () => {
+    try {
+      const storedTasks = await AsyncStorage.getItem("tasks");
+      if (storedTasks) {
+        setTasks(JSON.parse(storedTasks));
+      }
+    } catch (error) {
+      console.log("Görevler yüklenemedi:", error);
+    }
+  };
+
+  loadTasks();
+}, []);
+useEffect(() => {
+  const now = new Date();
+  const upcoming = tasks.filter((task) => {
+    if (!task.dueDate || task.completed) return false;
+    const due = new Date(task.dueDate);
+    const diffDays = (due - now) / (1000 * 3600 * 24);
+    return diffDays >= 0 && diffDays <= 3;
+  });
+
+  const notifications = upcoming.map((task, index) => ({
+    id: index,
+    message: `Görev "${task.text}" için son tarih 3 gün içinde.`,
+  }));
+
+  setTaskNotifications(notifications);
+
+  if (notifications.length > 0) {
+    AsyncStorage.setItem("taskNotifications", JSON.stringify(notifications));
+  } else {
+    AsyncStorage.removeItem("taskNotifications");  // ✅ Bildirimleri temizle
+  }
+}, [tasks]);
   // Tasklar için fonksiyonlar
   const handleAddTask = () => {
     if (!newTaskText.trim()) return;
     if (editingIndex !== null) {
       const updatedTasks = [...tasks];
       updatedTasks[editingIndex].text = newTaskText;
+      updatedTasks[editingIndex].dueDate = dueDate; // tarih güncelle
       setTasks(updatedTasks);
       setEditingIndex(null);
     } else {
       setTasks([
         ...tasks,
-        { text: newTaskText, completed: false, addedBy: username },
+        {
+          text: newTaskText,
+          completed: false,
+          addedBy: username,
+          dueDate: dueDate,
+        },
       ]);
     }
     setNewTaskText("");
+    setDueDate(null);
   };
 
   const handleDeleteTask = (index) => {
@@ -384,8 +257,8 @@ export default function Dashboard() {
   const handleMarkDelivered = async (id) => {
     try {
       await axios.get(
-        `http://192.168.99.3:8000/store/api/deliveries/${id}/mark_as_delivered/`,
-        { headers: { Authorization: `Token ${token}` } }
+        `http://192.168.1.33:8000/store/api/deliveries/${id}/mark_as_delivered/`,
+        { headers: { Authorization: `Token ${token}` } },
       );
       setDeliveries((prev) => prev.filter((d) => d.id !== id));
     } catch (err) {
@@ -394,120 +267,203 @@ export default function Dashboard() {
   };
 
   return (
-    <ScrollView style={{ flex: 1, padding: 10 }}>
-      {/* Bildirim sayısı ve basit gösterim */}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={80} // Navbar vs varsa burayı ayarlayabilirsin
+    >
+      <ScrollView
+        style={{ flex: 1, padding: 10 }}
+        contentContainerStyle={{ paddingBottom: 100 }} // Alt boşluk!
+        keyboardShouldPersistTaps="handled"
+      >
         <View>
-      <AdminNavbarLinks />  {/* Bu olmalı */}
-      <Text>Dashboard Sayfası</Text>
-    </View>
-      <View style={{ flexDirection: "row", justifyContent: "flex-end", marginBottom: 10 }}>
-        <TouchableOpacity>
-          <Icon name="notifications" size={30} color="#000" />
-          {notifications.length > 0 && (
-            <View style={styles.badge}>
-              <Text style={{ color: "white", fontSize: 12 }}>{notifications.length}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      </View>
+          <AdminNavbarLinks /> {/* Bu olmalı */}
+          <Text>Dashboard Sayfası</Text>
+        </View>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "flex-end",
+            marginBottom: 10,
+          }}
+        >
+          <TouchableOpacity
+            onPress={() => setShowNotifications(!showNotifications)}
+          >
+            <Icon name="notifications" size={30} color="#000" />
+            {notifications.length > 0 && (
+              <View style={styles.badge}>
+                <Text style={{ color: "white", fontSize: 12 }}>
+                  {notifications.length}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+        {showNotifications && (
+          <View
+            style={{ backgroundColor: "#eee", padding: 10, borderRadius: 8 }}
+          >
+            <Text style={{ fontWeight: "bold" }}>Stok Uyarıları</Text>
+            {notifications.map((note, i) => (
+              <Text key={i} style={{ color: "red", marginVertical: 2 }}>
+                • {note}
+              </Text>
+            ))}
 
-      {/* Pie Chart */}
-      <Text style={styles.header}>Cash In vs Cash Out</Text>
-      <PieChart
-        data={pieData}
-        width={screenWidth - 20}
-        height={220}
-        chartConfig={chartConfig}
-        accessor="population"
-        backgroundColor="transparent"
-        paddingLeft="15"
-        absolute
-      />
-
-      {/* Material Stocks Bar Chart */}
-      <Text style={styles.header}>Material Stocks</Text>
-      <BarChart
-        data={prepareBarData(materialData)}
-        width={screenWidth - 20}
-        height={220}
-        chartConfig={chartConfig}
-        verticalLabelRotation={30}
-        fromZero
-      />
-
-      {/* Disinfectant Stocks Bar Chart */}
-      <Text style={styles.header}>Disinfectant Stocks</Text>
-      <BarChart
-        data={prepareBarData(disinfectantData)}
-        width={screenWidth - 20}
-        height={220}
-        chartConfig={{
-          ...chartConfig,
-          color: (opacity = 1) => `rgba(130, 202, 157, ${opacity})`,
-        }}
-        verticalLabelRotation={30}
-        fromZero
-      />
-
-      {/* Pending Deliveries */}
-      <Text style={styles.header}>Bekleyen Siparişler</Text>
-      {deliveries.length === 0 ? (
-        <Text>Tüm teslimatlar tamamlandı.</Text>
-      ) : (
-        deliveries.map((delivery) => (
-          <View key={delivery.id} style={styles.deliveryItem}>
-            <Checkbox
-              status={false}
-              onPress={() => handleMarkDelivered(delivery.id)}
-            />
-            <Text>{delivery.customer_name} - Ürün ID: {delivery.item}</Text>
+            <Text style={{ fontWeight: "bold", marginTop: 10 }}>
+              Görev Uyarıları
+            </Text>
+            {taskNotifications.length === 0 ? (
+              <Text>Görev uyarısı yok.</Text>
+            ) : (
+              taskNotifications.map((task) => (
+                <Text key={task.id} style={{ color: "orange" }}>
+                  • {task.message}
+                </Text>
+              ))
+            )}
           </View>
-        ))
-      )}
+        )}
 
-      {/* Görevler */}
-      <Text style={styles.header}>Görevler</Text>
-      <View style={styles.taskInputContainer}>
-        <TextInput
-          style={styles.textInput}
-          placeholder="Yeni görev"
-          value={newTaskText}
-          onChangeText={setNewTaskText}
+        {/* Pie Chart */}
+        <Text style={styles.header}>Cash In vs Cash Out</Text>
+        <PieChart
+          data={pieData}
+          width={screenWidth - 20}
+          height={220}
+          chartConfig={chartConfig}
+          accessor="population"
+          backgroundColor="transparent"
+          paddingLeft="15"
+          absolute
         />
-        <TouchableOpacity style={styles.addButton} onPress={handleAddTask}>
-          <Text style={{ color: "white" }}>
-            {editingIndex !== null ? "Güncelle" : "Ekle"}
-          </Text>
-        </TouchableOpacity>
-      </View>
 
-      {tasks.map((task, index) => (
-        <View key={index} style={styles.taskItem}>
-          <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+        {/* Material Stocks Bar Chart */}
+        <Text style={styles.header}>Material Stocks</Text>
+        <BarChart
+          data={prepareBarData(materialData)}
+          width={screenWidth - 20}
+          height={220}
+          chartConfig={chartConfig}
+          verticalLabelRotation={30}
+          fromZero
+        />
+
+        {/* Disinfectant Stocks Bar Chart */}
+        <Text style={styles.header}>Disinfectant Stocks</Text>
+        <BarChart
+          data={prepareBarData(disinfectantData)}
+          width={screenWidth - 20}
+          height={220}
+          chartConfig={{
+            ...chartConfig,
+            color: (opacity = 1) => `rgba(130, 202, 157, ${opacity})`,
+          }}
+          verticalLabelRotation={30}
+          fromZero
+        />
+
+        {/* Pending Deliveries */}
+        <Text style={styles.header}>Bekleyen Siparişler</Text>
+        {deliveries.length === 0 ? (
+          <Text>Tüm teslimatlar tamamlandı.</Text>
+        ) : (
+          deliveries.map((delivery) => (
+            <View key={delivery.id} style={styles.deliveryItem}>
+              <Checkbox
+                status={false}
+                onPress={() => handleMarkDelivered(delivery.id)}
+              />
+              <Text>
+                {delivery.customer_name} - Ürün ID: {delivery.item}
+              </Text>
+            </View>
+          ))
+        )}
+
+        {/* Görevler */}
+        <Text style={styles.header}>Görevler</Text>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          <TextInput
+            style={styles.textInput}
+            placeholder="Yeni görev"
+            value={newTaskText}
+            onChangeText={setNewTaskText}
+          />
+
+          <TouchableOpacity
+            onPress={() => setShowDatePicker(true)}
+            style={{ marginLeft: 10 }}
+          >
+            <Text>
+              {dueDate
+                ? new Date(dueDate).toLocaleDateString()
+                : "Son tarih seç"}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.addButton} onPress={handleAddTask}>
+            <Text style={{ color: "white" }}>
+              {editingIndex !== null ? "Güncelle" : "Ekle"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {showDatePicker && (
+          <DateTimePicker
+            value={dueDate ? new Date(dueDate) : new Date()}
+            mode="date"
+            display="default"
+            onChange={(event, selectedDate) => {
+              setShowDatePicker(false);
+              if (selectedDate) setDueDate(selectedDate.toISOString());
+            }}
+          />
+        )}
+
+        {/* Görev Listesi */}
+        {tasks.map((task, index) => (
+          <View
+            key={index}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginVertical: 5,
+            }}
+          >
             <Checkbox
               status={task.completed ? "checked" : "unchecked"}
               onPress={() => toggleComplete(index)}
             />
-            <Text
-              style={{
-                textDecorationLine: task.completed ? "line-through" : "none",
-                flexShrink: 1,
-              }}
-            >
-              {task.text} <Text style={{ fontSize: 12, color: "#777" }}>– {task.addedBy} tarafından eklendi</Text>
-            </Text>
-          </View>
-          <View style={{ flexDirection: "row" }}>
-            <TouchableOpacity onPress={() => handleEditTask(index)} style={{ marginRight: 10 }}>
-              <Icon name="edit" size={20} color="#555" />
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontWeight: "bold" }}>{task.text}</Text>
+              <Text style={{ fontSize: 12, color: "#777" }}>
+                – {task.addedBy} tarafından eklendi
+                {task.dueDate
+                  ? ` | Son tarih: ${new Date(task.dueDate).toLocaleDateString()}`
+                  : ""}
+              </Text>
+            </View>
+            <TouchableOpacity onPress={() => handleEditTask(index)}>
+              <Text style={{ marginHorizontal: 10, color: "blue" }}>
+                Düzenle
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => handleDeleteTask(index)}>
-              <Icon name="delete" size={20} color="#555" />
+              <Text style={{ color: "red" }}>Sil</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      ))}
-    </ScrollView>
+        ))}
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -517,6 +473,15 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginTop: 20,
     marginBottom: 10,
+  },
+  badge: {
+    position: "absolute",
+    right: -6,
+    top: -3,
+    backgroundColor: "red",
+    borderRadius: 8,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
   },
   badge: {
     position: "absolute",

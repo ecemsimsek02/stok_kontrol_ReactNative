@@ -3,14 +3,15 @@ import { Picker } from "@react-native-picker/picker";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import {
-    Alert,
-    Button,
-    FlatList,
-    StyleSheet,
-    Text,
-    TextInput,
-    View
+  Alert,
+  Button,
+  FlatList,
+  StyleSheet,
+  Text,
+  TextInput,
+  View
 } from "react-native";
+import Layout from "../components/Layout.js";
 
 const RecipeScreen = () => {
   const [recipes, setRecipes] = useState([]);
@@ -42,9 +43,9 @@ const RecipeScreen = () => {
     const config = { headers: { Authorization: `Token ${t}` } };
     try {
       const [r, d, m] = await Promise.all([
-        axios.get("http://192.168.99.3:8000/stocks/api/recipes/", config),
-        axios.get("http://192.168.99.3:8000/stocks/api/disinfectants/", config),
-        axios.get("http://192.168.99.3:8000/stocks/api/materials/", config),
+        axios.get("http://192.168.1.33:8000/stocks/api/recipes/", config),
+        axios.get("http://192.168.1.33:8000/stocks/api/disinfectants/", config),
+        axios.get("http://192.168.1.33:8000/stocks/api/materials/", config),
       ]);
       setRecipes(r.data);
       setDisinfectants(d.data);
@@ -59,14 +60,14 @@ const RecipeScreen = () => {
     try {
       if (editingId) {
         await axios.put(
-          `http://192.168.99.3:8000/stocks/api/recipes/${editingId}/update/`,
+          `http://192.168.1.33:8000/stocks/api/recipes/${editingId}/update/`,
           formData,
           config
         );
         setEditingId(null);
       } else {
         await axios.post(
-          "http://192.168.99.3:8000/stocks/api/recipes/",
+          "http://192.168.1.33:8000/stocks/api/recipes/",
           formData,
           config
         );
@@ -91,7 +92,7 @@ const RecipeScreen = () => {
     const config = { headers: { Authorization: `Token ${token}` } };
     try {
       await axios.delete(
-        `http://192.168.99.3:8000/stocks/api/recipes/${id}/delete/`,
+        `http://192.168.1.33:8000/stocks/api/recipes/${id}/delete/`,
         config
       );
       fetchAll(token);
@@ -103,6 +104,7 @@ const RecipeScreen = () => {
   const getName = (list, id) => list.find((item) => item.id === id)?.name || "";
 
   return (
+    <Layout>
     <View style={styles.container}>
       <Text style={styles.title}>Tarif Yönetimi</Text>
 
@@ -178,6 +180,7 @@ const RecipeScreen = () => {
         }}
       />
     </View>
+    </Layout>
   );
 };
 

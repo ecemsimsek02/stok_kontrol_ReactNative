@@ -5,11 +5,9 @@ import {
   Button,
   FlatList,
   Image,
-  StyleSheet,
-  Text,
-  TextInput,
-  View
+  StyleSheet, Text, TextInput, View
 } from "react-native";
+import Layout from "../components/Layout.js";
 
 const ProfileScreen = () => {
   const [profiles, setProfiles] = useState([]);
@@ -30,7 +28,7 @@ const ProfileScreen = () => {
 
     try {
       const response = await axios.get(
-        "http://192.168.99.3:8000/accounts/api/profiles/",
+        "http://192.168.1.33:8000/accounts/api/profiles/",
         {
           headers: {
             Authorization: `Token ${token}`,
@@ -68,7 +66,7 @@ const ProfileScreen = () => {
 
     try {
       await axios.put(
-        `http://192.168.99.3:8000/accounts/profile/${editingProfileId}/update/`,
+        `http://192.168.1.33:8000/accounts/profile/${editingProfileId}/update/`,
         formData,
         {
           headers: {
@@ -92,7 +90,7 @@ const ProfileScreen = () => {
 
     try {
       await axios.delete(
-        `http://192.168.99.3:8000/accounts/profiles/${id}/delete/`,
+        `http://192.168.1.33:8000/accounts/profiles/${id}/delete/`,
         {
           headers: {
             Authorization: `Token ${token}`,
@@ -131,6 +129,7 @@ const ProfileScreen = () => {
   };
 
   return (
+    <Layout>
     <View style={styles.container}>
       <Text style={styles.title}>Profiller</Text>
 
@@ -197,6 +196,7 @@ const ProfileScreen = () => {
         )}
       />
     </View>
+    </Layout>
   );
 };
 

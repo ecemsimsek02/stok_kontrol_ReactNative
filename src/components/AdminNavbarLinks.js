@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import { MaterialIcons } from '@expo/vector-icons';
-import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import axios from "axios";
+import React, { useContext, useEffect, useState } from "react";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { AuthContext } from "../context/AuthContext";
 
 const AdminNavbarLinks = () => {
-  const navigation = useNavigation();  // Burada navigation alındı
+  const navigation = useNavigation();
   const [openAlerts, setOpenAlerts] = useState(false);
   const [alerts, setAlerts] = useState([]);
   const [taskNotifications, setTaskNotifications] = useState([]);
-  
-  console.log("navigation:", navigation);
+  const { logout } = useContext(AuthContext);
 
   const toggleAlerts = () => {
     setOpenAlerts(!openAlerts);
@@ -19,8 +19,6 @@ const AdminNavbarLinks = () => {
 
   const goToProfile = () => {
     navigation.navigate("Profiles");
-    console.log("navigation:", navigation);
-
   };
 
   const goToDashboard = () => {
@@ -28,15 +26,20 @@ const AdminNavbarLinks = () => {
   };
 
   const handleLogout = async () => {
-    await AsyncStorage.clear();
-    navigation.replace("Login");
+    try {
+      await AsyncStorage.removeItem("access_token");
+      await AsyncStorage.removeItem("refresh_token");
+      logout(); 
+    } catch (error) {
+      console.log("Çıkış yapılamadı:", error);
+    }
   };
 
   useEffect(() => {
     const fetchAlerts = async () => {
       try {
         const token = await AsyncStorage.getItem("access_token");
-        const response = await axios.get("http://127.0.0.1:8000/stocks/api/stock-alerts/", {
+        const response = await axios.get("http://192.168.1.33:8000/stocks/api/stock-alerts/", {
           headers: { Authorization: `Token ${token}` },
         });
         setAlerts(response.data.alerts);
@@ -45,54 +48,73 @@ const AdminNavbarLinks = () => {
       }
     };
 
-    fetchAlerts();
 
-    AsyncStorage.getItem("taskNotifications").then((data) => {
-      if (data) {
-        try {
+  fetchAlerts();
+  
+
+
+  }, []);
+  useFocusEffect(
+  React.useCallback(() => {
+    const fetchTaskNotifications = async () => {
+      try {
+        const data = await AsyncStorage.getItem("taskNotifications");
+        if (data) {
           setTaskNotifications(JSON.parse(data));
-        } catch {
+        } else {
           setTaskNotifications([]);
         }
+      } catch (error) {
+        console.log("Görev bildirimi okunamadı:", error);
       }
-    });
-  }, []);
+    };
 
-   return (
+    fetchTaskNotifications();
+  }, [])
+);
+
+  return (
     <View style={styles.container}>
       <TouchableOpacity onPress={toggleAlerts}>
         <MaterialIcons 
           name="notifications"
           size={28}
-          color={alerts.length > 0 ? "red" : "gray"}
+          color={alerts.length > 0 || taskNotifications.length > 0 ? "red" : "gray"}
         />
       </TouchableOpacity>
 
       {openAlerts && (
         <View style={styles.alertBox}>
           <ScrollView>
-            <Text style={styles.title}>Görev Bildirimleri</Text>
-            {taskNotifications.length === 0 ? (
-              <Text style={styles.message}>Bildirim yok</Text>
-            ) : (
-              taskNotifications.map((note, idx) => (
-                <Text key={idx} style={styles.message}>{note.message}</Text>
-              ))
+            {taskNotifications.length > 0 && (
+              <>
+                <Text style={styles.title}>Görev Uyarıları</Text>
+                {taskNotifications.map((note, idx) => (
+                  <Text key={idx} style={styles.message}>• {note.message}</Text>
+                ))}
+              </>
             )}
+
             {alerts.length > 0 && (
               <>
                 <Text style={styles.title}>Stok Uyarıları</Text>
                 {alerts.map((alert, idx) => (
-                  <Text key={idx} style={styles.message}>{alert}</Text>
+                  <Text key={idx} style={[styles.message, { color: 'red' }]}>
+                    • {alert}
+                  </Text>
                 ))}
               </>
+            )}
+
+            {taskNotifications.length === 0 && alerts.length === 0 && (
+              <Text style={styles.message}>Hiçbir bildirim yok.</Text>
             )}
           </ScrollView>
         </View>
       )}
 
       <TouchableOpacity onPress={goToDashboard}>
-        <MaterialIcons  name="dashboard" size={28} color="#555" />
+        <MaterialIcons name="dashboard" size={28} color="#555" />
       </TouchableOpacity>
 
       <TouchableOpacity onPress={goToProfile}>
@@ -109,33 +131,34 @@ const AdminNavbarLinks = () => {
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    padding: 10,
     justifyContent: "space-around",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: "#f4f4f4",
+    padding: 10,
   },
   alertBox: {
     position: "absolute",
     top: 50,
     right: 10,
     backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
     padding: 10,
-    width: 250,
-    maxHeight: 300,
-    zIndex: 1000,
+    borderRadius: 8,
     elevation: 5,
+    zIndex: 999,
+    width: 300,
+    maxHeight: 300,
   },
   title: {
     fontWeight: "bold",
-    fontSize: 14,
-    marginVertical: 5,
+    fontSize: 16,
+    marginBottom: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+    paddingBottom: 4,
   },
   message: {
-    fontSize: 13,
-    marginVertical: 2,
+    fontSize: 14,
+    marginVertical: 3,
   },
 });
 
