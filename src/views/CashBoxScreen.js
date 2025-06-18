@@ -1,9 +1,10 @@
 // src/views/cashbox/CashboxPage.js
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Picker } from '@react-native-picker/picker';
+import { Picker } from "@react-native-picker/picker";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+
 import {
   Alert,
   Button,
@@ -35,16 +36,24 @@ const getUserRole = async () => {
 };
 
 const CashboxPage = () => {
-
   const [transactions, setTransactions] = useState([]);
   const [cashRegisters, setCashRegisters] = useState([]);
   const [formModalVisible, setFormModalVisible] = useState(false);
   const [registerModalVisible, setRegisterModalVisible] = useState(false);
-  const [editRegisterModalVisible, setEditRegisterModalVisible] = useState(false);
+  const [editRegisterModalVisible, setEditRegisterModalVisible] =
+    useState(false);
 
   const [editingRegister, setEditingRegister] = useState(null);
   const [newRegisterDate, setNewRegisterDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const [partyType, setPartyType] = useState("none"); // "none", "customer", "vendor", "other"
+  const [parties, setParties] = useState([]);
+  const [selectedParty, setSelectedParty] = useState("");
+  const [customPartyName, setCustomPartyName] = useState("");
+
+  const CUSTOMER_API = "http://192.168.1.33:8000/accounts/api/customers/";
+  const VENDOR_API = "http://192.168.1.33:8000/accounts/api/vendors/";
 
   const [formData, setFormData] = useState({
     id: null,
@@ -60,21 +69,21 @@ const CashboxPage = () => {
   const API_URL = "http://192.168.1.33:8000/cash/transactions/";
   const REGISTER_API = "http://192.168.1.33:8000/cash/cash_registers/";
 
-useEffect(() => {
-  const loadData = async () => {
-    const tkn = await AsyncStorage.getItem("access_token");
-    const r = await getUserRole();
-    console.log("TOKEN:", tkn);
-    console.log("ROLE:", r);
-    setToken(tkn);
-    setRole(r);
-    if (tkn) {
-      fetchTransactions(tkn);
-      fetchCashRegisters(tkn);
-    }
-  };
-  loadData();
-}, []);
+  useEffect(() => {
+    const loadData = async () => {
+      const tkn = await AsyncStorage.getItem("access_token");
+      const r = await getUserRole();
+      console.log("TOKEN:", tkn);
+      console.log("ROLE:", r);
+      setToken(tkn);
+      setRole(r);
+      if (tkn) {
+        fetchTransactions(tkn);
+        fetchCashRegisters(tkn);
+      }
+    };
+    loadData();
+  }, []);
 
   const fetchTransactions = async (tkn) => {
     try {
@@ -143,6 +152,25 @@ useEffect(() => {
       transaction_type: tx.transaction_type,
       description: tx.description,
     });
+
+    if (tx.customer) {
+      setPartyType("customer");
+      setSelectedParty(tx.customer);
+      setCustomPartyName("");
+    } else if (tx.vendor) {
+      setPartyType("vendor");
+      setSelectedParty(tx.vendor);
+      setCustomPartyName("");
+    } else if (tx.other_party) {
+      setPartyType("other");
+      setSelectedParty("");
+      setCustomPartyName(tx.other_party);
+    } else {
+      setPartyType("none");
+      setSelectedParty("");
+      setCustomPartyName("");
+    }
+
     setFormModalVisible(true);
   };
 
@@ -153,7 +181,9 @@ useEffect(() => {
       transaction_type: formData.transaction_type,
       description: formData.description,
     };
-
+    if (partyType === "customer") data.customer = selectedParty;
+    else if (partyType === "vendor") data.vendor = selectedParty;
+    else if (partyType === "other") data.other_party = customPartyName;
     try {
       if (formData.id) {
         await axios.put(`${API_URL}${formData.id}/`, data, {
@@ -187,7 +217,7 @@ useEffect(() => {
         { date: newRegisterDate.toISOString().split("T")[0] },
         {
           headers: { Authorization: `Token ${token}` },
-        }
+        },
       );
       setRegisterModalVisible(false);
       fetchCashRegisters(token);
@@ -199,9 +229,13 @@ useEffect(() => {
 
   const handleUpdateRegister = async () => {
     try {
-      await axios.put(`${REGISTER_API}${editingRegister.id}/`, editingRegister, {
-        headers: { Authorization: `Token ${token}` },
-      });
+      await axios.put(
+        `${REGISTER_API}${editingRegister.id}/`,
+        editingRegister,
+        {
+          headers: { Authorization: `Token ${token}` },
+        },
+      );
       setEditRegisterModalVisible(false);
       fetchCashRegisters(token);
     } catch (error) {
@@ -209,264 +243,371 @@ useEffect(() => {
       Alert.alert("Hata", "Cash register güncellenemedi");
     }
   };
+  const fetchParties = async (type) => {
+    try {
+      const token = await AsyncStorage.getItem("access_token");
+      if (!token) {
+        console.error("Token eksik!");
+        return;
+      }
+      const url = type === "customer" ? CUSTOMER_API : VENDOR_API;
+      const response = await axios.get(url, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      console.log("Parti verisi:", response.data);
+      setParties(response.data);
+    } catch (err) {
+      console.error("Kişiler/Satıcılar alınamadı", err);
+      Alert.alert("Hata", "Veriler getirilemedi.");
+    }
+  };
 
-
+  useEffect(() => {
+    if (partyType === "customer" || partyType === "vendor") {
+      fetchParties(partyType);
+    } else {
+      setParties([]);
+      setSelectedParty("");
+    }
+  }, [partyType]);
 
   return (
     <Layout>
-    <ScrollView style={styles.container}>
+      <ScrollView style={styles.container}>
+        <Text style={styles.title}>Kasa İşlemleri</Text>
 
-      <Text style={styles.title}>Cash Transactions</Text>
+        <Button
+          title="Add Transactions"
+          onPress={() => {
+            setFormModalVisible(true);
+            setFormData({
+              id: null,
+              cash_register: cashRegisters[0]?.id || "",
+              amount: "",
+              transaction_type: "IN",
+              description: "",
+            });
+            setPartyType("none");
+            setSelectedParty("");
+            setCustomPartyName("");
+          }}
+        />
 
-      <Button
-        title="Add Transactions"
-        onPress={() => setFormModalVisible(true)}
-      />
-
-      {/* Transactions List */}
-      <FlatList
-        style={{ marginTop: 16 }}
-        data={transactions}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>
-              {item.transaction_type === "IN" ? "Kasa Giriş" : "Kasa Çıkış"} -{" "}
-              {item.amount} TL
-            </Text>
-            <Text>{item.description}</Text>
-            <Text>
-              Date: {new Date(item.created_at).toLocaleString()}
-            </Text>
-            <View style={styles.iconRow}>
-              <TouchableOpacity onPress={() => handleEditTransaction(item)}>
-                <Icon name="edit" size={24} color="blue" />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDeleteTransaction(item.id)}>
-                <Icon name="delete" size={24} color="red" />
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-      />
-
-      <Text style={[styles.title, { marginTop: 32 }]}>
-        Cash Registers
-      </Text>
-
-      <Button
-        title="New Cash Registers"
-        onPress={() => setRegisterModalVisible(true)}
-      />
-
-      {/* Cash Registers List */}
-      <FlatList
-        style={{ marginTop: 8 }}
-        data={cashRegisters}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>
-              Date: {new Date(item.date).toLocaleDateString()}
-            </Text>
-            <Text>
-              Balance: {item.balance} TL
-            </Text>
-            <View style={styles.iconRow}>
-              <TouchableOpacity onPress={() => handleEditRegister(item)}>
-                <Icon name="edit" size={24} color="blue" />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDeleteRegister(item.id)}>
-                <Icon name="delete" size={24} color="red" />
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-      />
-
-      {/* Transaction Form Modal */}
-      <Modal visible={formModalVisible} animationType="slide" transparent={true}>
-        <View style={styles.modalBackground}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {formData.id ? "Edit Transaction" : "Add Transaction"}
-            </Text>
-
-            <Text>Cash Register</Text>
-            {/* Cash Register Picker */}
-            {Platform.OS === "android" ? (
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={formData.cash_register}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, cash_register: value }))
-                  }
-                  style={{ height: 40 }}
-                >
-                  {cashRegisters.map((reg) => (
-                    <Picker.Item
-                      key={reg.id}
-                      label={new Date(reg.date).toLocaleDateString()}
-                      value={reg.id}
-                    />
-                  ))}
-                </Picker>
-              </View>
-            ) : (
-              <ScrollView horizontal style={{ marginVertical: 8 }}>
-                {cashRegisters.map((reg) => (
-                  <TouchableOpacity
-                    key={reg.id}
-                    onPress={() =>
-                      setFormData((prev) => ({ ...prev, cash_register: reg.id }))
-                    }
-                    style={[
-                      styles.registerOption,
-                      formData.cash_register === reg.id && styles.registerOptionSelected,
-                    ]}
-                  >
-                    <Text>{new Date(reg.date).toLocaleDateString()}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            )}
-
-            <Text>Amount</Text>
-            <TextInput
-              keyboardType="numeric"
-              value={formData.amount}
-              onChangeText={(text) =>
-                setFormData((prev) => ({ ...prev, amount: text }))
-              }
-              style={styles.input}
-            />
-
-            <Text>Transaction Type</Text>
-            <View style={styles.transactionTypeContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.transactionTypeButton,
-                  formData.transaction_type === "IN" && styles.selectedButton,
-                ]}
-                onPress={() =>
-                  setFormData((prev) => ({ ...prev, transaction_type: "IN" }))
-                }
-              >
-                <Text>IN</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.transactionTypeButton,
-                  formData.transaction_type === "OUT" && styles.selectedButton,
-                ]}
-                onPress={() =>
-                  setFormData((prev) => ({ ...prev, transaction_type: "OUT" }))
-                }
-              >
-                <Text>OUT</Text>
-              </TouchableOpacity>
-            </View>
-
-            <Text>Description</Text>
-            <TextInput
-              multiline
-              numberOfLines={3}
-              value={formData.description}
-              onChangeText={(text) =>
-                setFormData((prev) => ({ ...prev, description: text }))
-              }
-              style={[styles.input, { height: 80 }]}
-            />
-
-            <View style={styles.modalButtons}>
-              <Button title="Cancel" onPress={() => setFormModalVisible(false)} />
-              <Button title="Save" onPress={handleSubmit} />
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* New Cash Register Modal */}
-      <Modal visible={registerModalVisible} animationType="slide" transparent={true}>
-        <View style={styles.modalBackground}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>New Cash Register</Text>
-
-            <TouchableOpacity
-              onPress={() => setShowDatePicker(true)}
-              style={styles.datePickerButton}
-            >
-              <Text>{newRegisterDate.toLocaleDateString()}</Text>
-            </TouchableOpacity>
-
-            {showDatePicker && (
-              <DateTimePicker
-                value={newRegisterDate}
-                mode="date"
-                display="default"
-                onChange={(event, selectedDate) => {
-                  setShowDatePicker(Platform.OS === "ios");
-                  if (selectedDate) setNewRegisterDate(selectedDate);
-                }}
-              />
-            )}
-
-            <View style={styles.modalButtons}>
-              <Button title="Cancel" onPress={() => setRegisterModalVisible(false)} />
-              <Button title="Add" onPress={handleAddRegister} />
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Edit Cash Register Modal */}
-      <Modal
-        visible={editRegisterModalVisible}
-        animationType="slide"
-        transparent={true}
-      >
-        <View style={styles.modalBackground}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edit Cash Register</Text>
-
-            <TouchableOpacity
-              onPress={() => setShowDatePicker(true)}
-              style={styles.datePickerButton}
-            >
-              <Text>
-                {editingRegister
-                  ? new Date(editingRegister.date).toLocaleDateString()
-                  : ""}
+        {/* Transactions List */}
+        <FlatList
+          style={{ marginTop: 16 }}
+          data={transactions}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>
+                {item.transaction_type === "IN" ? "Kasa Giriş" : "Kasa Çıkış"} -{" "}
+                {item.amount} TL
               </Text>
-            </TouchableOpacity>
+              <Text>{item.description}</Text>
+              <Text>Tarih: {new Date(item.created_at).toLocaleString()}</Text>
+              <Text>Taraf Seçimi</Text>
 
-            {showDatePicker && (
-              <DateTimePicker
-                value={
-                  editingRegister ? new Date(editingRegister.date) : new Date()
+              <View style={styles.iconRow}>
+                <TouchableOpacity onPress={() => handleEditTransaction(item)}>
+                  <Icon name="edit" size={24} color="blue" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => handleDeleteTransaction(item.id)}
+                >
+                  <Icon name="delete" size={24} color="red" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        />
+
+        <Text style={[styles.title, { marginTop: 32 }]}>Kasa Kayıtları</Text>
+
+        <Button
+          title="New Cash Registers"
+          onPress={() => setRegisterModalVisible(true)}
+        />
+
+        {/* Cash Registers List */}
+        <FlatList
+          style={{ marginTop: 8 }}
+          data={cashRegisters}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>
+                Date: {new Date(item.date).toLocaleDateString()}
+              </Text>
+              <Text>Bakiye: {item.balance} TL</Text>
+              <View style={styles.iconRow}>
+                <TouchableOpacity onPress={() => handleEditRegister(item)}>
+                  <Icon name="edit" size={24} color="blue" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleDeleteRegister(item.id)}>
+                  <Icon name="delete" size={24} color="red" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        />
+
+        {/* Transaction Form Modal */}
+        <Modal
+          visible={formModalVisible}
+          animationType="slide"
+          transparent={true}
+        >
+          <View style={styles.modalBackground}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>
+                {formData.id ? "Edit Transaction" : "Add Transaction"}
+              </Text>
+
+              <Text>Cash Register</Text>
+              {/* Cash Register Picker */}
+              {Platform.OS === "android" ? (
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={formData.cash_register}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({ ...prev, cash_register: value }))
+                    }
+                    style={{ height: 40 }}
+                  >
+                    {cashRegisters.map((reg) => (
+                      <Picker.Item
+                        key={reg.id}
+                        label={new Date(reg.date).toLocaleDateString()}
+                        value={reg.id}
+                      />
+                    ))}
+                  </Picker>
+                </View>
+              ) : (
+                <ScrollView horizontal style={{ marginVertical: 8 }}>
+                  {cashRegisters.map((reg) => (
+                    <TouchableOpacity
+                      key={reg.id}
+                      onPress={() =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          cash_register: reg.id,
+                        }))
+                      }
+                      style={[
+                        styles.registerOption,
+                        formData.cash_register === reg.id &&
+                          styles.registerOptionSelected,
+                      ]}
+                    >
+                      <Text>{new Date(reg.date).toLocaleDateString()}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              )}
+
+              <Text>Amount</Text>
+              <TextInput
+                keyboardType="numeric"
+                value={formData.amount}
+                onChangeText={(text) =>
+                  setFormData((prev) => ({ ...prev, amount: text }))
                 }
-                mode="date"
-                display="default"
-                onChange={(event, selectedDate) => {
-                  setShowDatePicker(Platform.OS === "ios");
-                  if (selectedDate && editingRegister) {
-                    setEditingRegister({ ...editingRegister, date: selectedDate });
-                  }
-                }}
+                style={styles.input}
               />
-            )}
 
-            <View style={styles.modalButtons}>
-              <Button
-                title="Cancel"
-                onPress={() => setEditRegisterModalVisible(false)}
+              <Text>Transaction Type</Text>
+              <View style={styles.transactionTypeContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.transactionTypeButton,
+                    formData.transaction_type === "IN" && styles.selectedButton,
+                  ]}
+                  onPress={() =>
+                    setFormData((prev) => ({ ...prev, transaction_type: "IN" }))
+                  }
+                >
+                  <Text>IN</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.transactionTypeButton,
+                    formData.transaction_type === "OUT" &&
+                      styles.selectedButton,
+                  ]}
+                  onPress={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      transaction_type: "OUT",
+                    }))
+                  }
+                >
+                  <Text>OUT</Text>
+                </TouchableOpacity>
+              </View>
+
+              <Text>Description</Text>
+              <TextInput
+                multiline
+                numberOfLines={3}
+                value={formData.description}
+                onChangeText={(text) =>
+                  setFormData((prev) => ({ ...prev, description: text }))
+                }
+                style={[styles.input, { height: 80 }]}
               />
-              <Button title="Save" onPress={handleUpdateRegister} />
+              <Text>Taraf Seçimi</Text>
+              <Picker
+                selectedValue={partyType}
+                onValueChange={(val) => setPartyType(val)}
+                style={{ marginBottom: 12 }}
+              >
+                <Picker.Item label="Seçiniz" value="none" />
+                <Picker.Item label="Müşteri" value="customer" />
+                <Picker.Item label="Şirket" value="vendor" />
+                <Picker.Item label="Diğer" value="other" />
+              </Picker>
+
+              {(partyType === "customer" || partyType === "vendor") && (
+                <>
+                  <Text>
+                    {partyType === "customer"
+                      ? "Müşteri Seçin"
+                      : "Şirket Seçin"}
+                  </Text>
+                  <Picker
+                    selectedValue={selectedParty}
+                    onValueChange={(val) => setSelectedParty(val)}
+                    style={{ marginBottom: 12 }}
+                  >
+                    <Picker.Item label="Seçiniz" value="" />
+                    {parties.map((p) => (
+                      <Picker.Item
+                        key={p.id}
+                        label={p.name || p.full_name || p.title || "Bilinmeyen"}
+                        value={p.id}
+                      />
+                    ))}
+                  </Picker>
+                </>
+              )}
+
+              {partyType === "other" && (
+                <>
+                  <Text>İsim Girin</Text>
+                  <TextInput
+                    placeholder="İsim girin"
+                    value={customPartyName}
+                    onChangeText={setCustomPartyName}
+                    style={styles.input}
+                  />
+                </>
+              )}
+              <View style={styles.modalButtons}>
+                <Button
+                  title="Cancel"
+                  onPress={() => setFormModalVisible(false)}
+                />
+                <Button title="Save" onPress={handleSubmit} />
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
-    </ScrollView>
+        </Modal>
+
+        {/* New Cash Register Modal */}
+        <Modal
+          visible={registerModalVisible}
+          animationType="slide"
+          transparent={true}
+        >
+          <View style={styles.modalBackground}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>New Cash Register</Text>
+
+              <TouchableOpacity
+                onPress={() => setShowDatePicker(true)}
+                style={styles.datePickerButton}
+              >
+                <Text>{newRegisterDate.toLocaleDateString()}</Text>
+              </TouchableOpacity>
+
+              {showDatePicker && (
+                <DateTimePicker
+                  value={newRegisterDate}
+                  mode="date"
+                  display="default"
+                  onChange={(event, selectedDate) => {
+                    setShowDatePicker(Platform.OS === "ios");
+                    if (selectedDate) setNewRegisterDate(selectedDate);
+                  }}
+                />
+              )}
+
+              <View style={styles.modalButtons}>
+                <Button
+                  title="Cancel"
+                  onPress={() => setRegisterModalVisible(false)}
+                />
+                <Button title="Add" onPress={handleAddRegister} />
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Edit Cash Register Modal */}
+        <Modal
+          visible={editRegisterModalVisible}
+          animationType="slide"
+          transparent={true}
+        >
+          <View style={styles.modalBackground}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Edit Cash Register</Text>
+
+              <TouchableOpacity
+                onPress={() => setShowDatePicker(true)}
+                style={styles.datePickerButton}
+              >
+                <Text>
+                  {editingRegister
+                    ? new Date(editingRegister.date).toLocaleDateString()
+                    : ""}
+                </Text>
+              </TouchableOpacity>
+
+              {showDatePicker && (
+                <DateTimePicker
+                  value={
+                    editingRegister
+                      ? new Date(editingRegister.date)
+                      : new Date()
+                  }
+                  mode="date"
+                  display="default"
+                  onChange={(event, selectedDate) => {
+                    setShowDatePicker(Platform.OS === "ios");
+                    if (selectedDate && editingRegister) {
+                      setEditingRegister({
+                        ...editingRegister,
+                        date: selectedDate,
+                      });
+                    }
+                  }}
+                />
+              )}
+
+              <View style={styles.modalButtons}>
+                <Button
+                  title="Cancel"
+                  onPress={() => setEditRegisterModalVisible(false)}
+                />
+                <Button title="Save" onPress={handleUpdateRegister} />
+              </View>
+            </View>
+          </View>
+        </Modal>
+      </ScrollView>
     </Layout>
   );
 };

@@ -1,10 +1,18 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import { Picker } from "@react-native-picker/picker";
 import React, { useEffect, useState } from "react";
 import {
-  Alert, Button, Linking, Modal, ScrollView, StyleSheet, Text,
-  TextInput, View
-} from 'react-native';
+  Alert,
+  Button,
+  Linking,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import Layout from "../components/Layout.js";
 
 const InvoicesScreen = () => {
@@ -12,6 +20,8 @@ const InvoicesScreen = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState(null);
+  const [customers, setCustomers] = useState([]);
+  const [selectedCustomer, setSelectedCustomer] = useState("");
   const [formData, setFormData] = useState({
     customer_name: "",
     contact_number: "",
@@ -21,33 +31,53 @@ const InvoicesScreen = () => {
     shipping: "",
   });
   const API_URL = "http://192.168.1.33:8000/invoice/api/invoices/";
-const getAuthHeaders = async () => {
-  try {
-    const token = await AsyncStorage.getItem("access_token");
-    if (!token) {
-      console.error("Token bulunamadı!");
+  const getAuthHeaders = async () => {
+    try {
+      const token = await AsyncStorage.getItem("access_token");
+      if (!token) {
+        console.error("Token bulunamadı!");
+        return {};
+      }
+      return {
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+      };
+    } catch (error) {
+      console.error("Token alınırken hata:", error);
       return {};
     }
-    return {
-      headers: {
-        Authorization: `Token ${token}`,
-      },
-    };
-  } catch (error) {
-    console.error("Token alınırken hata:", error);
-    return {};
-  }
-};
+  };
 
-const fetchInvoices = async () => {
-  try {
-    const headers = await getAuthHeaders();
-    const response = await axios.get(API_URL, headers);
-    setInvoices(response.data);
-  } catch (error) {
-    console.error("Invoice fetch error:", error);
-  }
-};
+  useEffect(() => {
+    fetchInvoices();
+    fetchCustomers();
+  }, []);
+
+  const fetchCustomers = async () => {
+    try {
+      const token = await AsyncStorage.getItem("access_token");
+      const response = await axios.get(
+        "http://192.168.1.33:8000/accounts/api/customers/",
+        {
+          headers: { Authorization: `Token ${token}` },
+        },
+      );
+      setCustomers(response.data);
+    } catch (error) {
+      console.error("Müşteri listesi alınamadı:", error);
+    }
+  };
+
+  const fetchInvoices = async () => {
+    try {
+      const headers = await getAuthHeaders();
+      const response = await axios.get(API_URL, headers);
+      setInvoices(response.data);
+    } catch (error) {
+      console.error("Invoice fetch error:", error);
+    }
+  };
   useEffect(() => {
     fetchInvoices();
   }, []);
@@ -94,7 +124,7 @@ const fetchInvoices = async () => {
         await axios.put(
           `${API_URL}${editingInvoice.id}/`,
           formData,
-          getAuthHeaders()
+          getAuthHeaders(),
         );
       } else {
         await axios.post(API_URL, formData, getAuthHeaders());
@@ -126,7 +156,7 @@ const fetchInvoices = async () => {
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -134,111 +164,131 @@ const fetchInvoices = async () => {
     (invoice) =>
       invoice.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       invoice.item.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.contact_number.includes(searchTerm)
+      invoice.contact_number.includes(searchTerm),
   );
 
   return (
     <Layout>
-    <View style={styles.container}>
-      <Text style={styles.title}>Siparişler</Text>
+      <View style={styles.container}>
+        <Text style={styles.title}>Siparişler</Text>
 
-   
+        <TextInput
+          placeholder="Search"
+          style={styles.searchInput}
+          value={searchTerm}
+          onChangeText={setSearchTerm}
+        />
 
-      <TextInput
-        placeholder="Search"
-        style={styles.searchInput}
-        value={searchTerm}
-        onChangeText={setSearchTerm}
-      />
+        <Button title="Sipariş Ekle" onPress={() => openModal()} />
 
-      <Button title="Sipariş Ekle" onPress={() => openModal()} />
+        <ScrollView style={{ marginTop: 16 }}>
+          {filteredInvoices.map((invoice) => (
+            <View key={invoice.id} style={styles.card}>
+              <Text style={styles.cardTitle}>{invoice.customer_name}</Text>
+              <Text>Contact: {invoice.contact_number}</Text>
+              <Text>Item: {invoice.item}</Text>
+              <Text>Quantity: {invoice.quantity}</Text>
+              <Text>Price: {invoice.price_per_item}</Text>
+              <Text>Shipping: {invoice.shipping}</Text>
+              <Text>Total: {invoice.total}</Text>
+              <Text>Grand Total: {invoice.grand_total}</Text>
 
-      <ScrollView style={{ marginTop: 16 }}>
-        {filteredInvoices.map((invoice) => (
-          <View key={invoice.id} style={styles.card}>
-            <Text style={styles.cardTitle}>{invoice.customer_name}</Text>
-            <Text>
-              Contact: {invoice.contact_number}
-            </Text>
-            <Text>
-              Item: {invoice.item}
-            </Text>
-            <Text>
-              Quantity: {invoice.quantity}
-            </Text>
-            <Text>
-              Price: {invoice.price_per_item}
-            </Text>
-            <Text>
-              Shipping: {invoice.shipping}
-            </Text>
-            <Text>
-              Total: {invoice.total}
-            </Text>
-            <Text>
-              Grand Total: {invoice.grand_total}
-            </Text>
-
-            <View style={styles.cardButtons}>
-              <Button
-                title="Download Pdf"
-                onPress={() =>
-                  // React Native'de window.open yok, Linking kullanılabilir
-                  // Bu örnek için Linking eklenmeli:
-                   Linking.openURL(`http://192.168.1.33:8000/invoice/pdf/${invoice.id}/`)
-                  //Alert.alert("Not Implemented", "PDF indirme mobilde desteklenmiyor.")
-                }
-              />
-              <Button title="Güncelle" onPress={() => openModal(invoice)} />
-              <Button
-                title="Sil"
-                color="red"
-                onPress={() => handleDelete(invoice.id)}
-              />
+              <View style={styles.cardButtons}>
+                <Button
+                  title="Download Pdf"
+                  onPress={
+                    () =>
+                      // React Native'de window.open yok, Linking kullanılabilir
+                      // Bu örnek için Linking eklenmeli:
+                      Linking.openURL(
+                        `http://192.168.1.33:8000/invoice/pdf/${invoice.id}/`,
+                      )
+                    //Alert.alert("Not Implemented", "PDF indirme mobilde desteklenmiyor.")
+                  }
+                />
+                <Button title="Güncelle" onPress={() => openModal(invoice)} />
+                <Button
+                  title="Sil"
+                  color="red"
+                  onPress={() => handleDelete(invoice.id)}
+                />
+              </View>
             </View>
-          </View>
-        ))}
-      </ScrollView>
+          ))}
+        </ScrollView>
 
-      <Modal visible={modalVisible} animationType="slide" transparent={true}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {editingInvoice ? "Edit Invoice" : "Add Invoice"}
-            </Text>
-            {[
-              "customer_name",
-              "contact_number",
-              "item",
-              "price_per_item",
-              "quantity",
-              "shipping",
-            ].map((field) => (
-              <TextInput
-                key={field}
+        <Modal visible={modalVisible} animationType="slide" transparent={true}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>
+                {editingInvoice ? "Edit Invoice" : "Add Invoice"}
+              </Text>
+
+              {/* Müşteri seçimi için Picker */}
+              <Picker
+                selectedValue={selectedCustomer}
+                onValueChange={(value) => {
+                  setSelectedCustomer(value);
+                  if (value !== "Diğer") {
+                    handleChange("customer_name", value);
+                  } else {
+                    handleChange("customer_name", "");
+                  }
+                }}
                 style={styles.input}
-                placeholder={field.replace(/_/g, " ").toUpperCase()}
-                value={formData[field]}
-                onChangeText={(value) => handleChange(field, value)}
-                keyboardType={
-                  ["price_per_item", "quantity", "shipping"].includes(field)
-                    ? "numeric"
-                    : "default"
-                }
-              />
-            ))}
+              >
+                <Picker.Item label="Müşteri Seçiniz" value="" />
+                {customers.map((cust) => (
+                  <Picker.Item
+                    key={cust.id}
+                    label={cust.full_name}
+                    value={cust.full_name}
+                  />
+                ))}
+                <Picker.Item label="Diğer" value="Diğer" />
+              </Picker>
 
-            <View style={styles.modalButtons}>
-              <Button title="Cancel" onPress={closeModal} />
-              <Button
-                title={editingInvoice ? "Update" : "Add"}
-                onPress={handleSubmit}
-              />
+              {selectedCustomer === "Diğer" && (
+                <TextInput
+                  style={styles.input}
+                  placeholder="MÜŞTERİ ADI"
+                  value={formData.customer_name}
+                  onChangeText={(value) => handleChange("customer_name", value)}
+                />
+              )}
+              {[
+                "customer_name",
+                "contact_number",
+                "item",
+                "price_per_item",
+                "quantity",
+                "shipping",
+              ].map((field) => (
+                <TextInput
+                  key={field}
+                  style={styles.input}
+                  placeholder={field.replace(/_/g, " ").toUpperCase()}
+                  value={formData[field]}
+                  onChangeText={(value) => handleChange(field, value)}
+                  keyboardType={
+                    ["price_per_item", "quantity", "shipping"].includes(field)
+                      ? "numeric"
+                      : "default"
+                  }
+                />
+              ))}
+
+              <View style={styles.modalButtons}>
+                <Button title="Cancel" onPress={closeModal} />
+                <Button
+                  title={editingInvoice ? "Update" : "Add"}
+                  onPress={handleSubmit}
+                />
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
-    </View>
+        </Modal>
+      </View>
     </Layout>
   );
 };

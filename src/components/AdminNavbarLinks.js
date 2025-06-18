@@ -1,9 +1,15 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import React, { useContext, useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { AuthContext } from "../context/AuthContext";
 
 const AdminNavbarLinks = () => {
@@ -29,7 +35,7 @@ const AdminNavbarLinks = () => {
     try {
       await AsyncStorage.removeItem("access_token");
       await AsyncStorage.removeItem("refresh_token");
-      logout(); 
+      logout();
     } catch (error) {
       console.log("Çıkış yapılamadı:", error);
     }
@@ -39,67 +45,67 @@ const AdminNavbarLinks = () => {
     const fetchAlerts = async () => {
       try {
         const token = await AsyncStorage.getItem("access_token");
-        const response = await axios.get("http://192.168.1.33:8000/stocks/api/stock-alerts/", {
-          headers: { Authorization: `Token ${token}` },
-        });
+        const response = await axios.get(
+          "http://192.168.1.33:8000/stocks/api/stock-alerts/",
+          {
+            headers: { Authorization: `Token ${token}` },
+          },
+        );
         setAlerts(response.data.alerts);
       } catch (error) {
         console.log("Uyarılar alınamadı:", error);
       }
     };
 
-
-  fetchAlerts();
-  
-
-
+    fetchAlerts();
   }, []);
-  useFocusEffect(
-  React.useCallback(() => {
+
+  useEffect(() => {
     const fetchTaskNotifications = async () => {
       try {
-        const data = await AsyncStorage.getItem("taskNotifications");
-        if (data) {
-          setTaskNotifications(JSON.parse(data));
+        const stored = await AsyncStorage.getItem("taskNotifications");
+        if (stored) {
+          setTaskNotifications(JSON.parse(stored));
         } else {
           setTaskNotifications([]);
         }
-      } catch (error) {
-        console.log("Görev bildirimi okunamadı:", error);
+      } catch (err) {
+        console.log("Bildirimler okunamadı:", err);
+        setTaskNotifications([]);
       }
     };
 
     fetchTaskNotifications();
-  }, [])
-);
-
+  }, [openAlerts]);
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={toggleAlerts}>
-        <MaterialIcons 
+        <MaterialIcons
           name="notifications"
           size={28}
-          color={alerts.length > 0 || taskNotifications.length > 0 ? "red" : "gray"}
+          color={
+            alerts.length > 0 || taskNotifications.length > 0 ? "red" : "gray"
+          }
         />
       </TouchableOpacity>
 
       {openAlerts && (
         <View style={styles.alertBox}>
           <ScrollView>
-            {taskNotifications.length > 0 && (
-              <>
-                <Text style={styles.title}>Görev Uyarıları</Text>
-                {taskNotifications.map((note, idx) => (
-                  <Text key={idx} style={styles.message}>• {note.message}</Text>
-                ))}
-              </>
+            {taskNotifications.length === 0 ? (
+              <Text>Görev uyarısı yok.</Text>
+            ) : (
+              taskNotifications.map((task) => (
+                <Text key={task.id} style={{ color: "orange", marginBottom: 4 }}>
+                  • {task.message}
+                </Text>
+              ))
             )}
-
             {alerts.length > 0 && (
               <>
                 <Text style={styles.title}>Stok Uyarıları</Text>
                 {alerts.map((alert, idx) => (
-                  <Text key={idx} style={[styles.message, { color: 'red' }]}>
+                  <Text key={idx} style={[styles.message, { color: "red" }]}>
                     • {alert}
                   </Text>
                 ))}

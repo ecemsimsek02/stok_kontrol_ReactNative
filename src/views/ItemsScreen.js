@@ -149,7 +149,7 @@ const handleDeleteItem = async (id) => {
     <Layout>
     <View style={styles.container}>
       <Text style={styles.header}>
-        {editingItemId ? "Item Güncelle" : "Yeni Item"}
+        {editingItemId ? "Item Güncelle" : "Yeni Ürün"}
       </Text>
 
       <TextInput

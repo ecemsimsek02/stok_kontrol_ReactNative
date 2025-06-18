@@ -114,25 +114,33 @@ const TaskPage = () => {
     }
   };
 
-  const checkNotifications = () => {
-    const today = new Date();
+  const checkNotifications = async (tasks, setNotifications) => {
+       const today = new Date();
     const updatedNotifications = tasks
       .filter((task) => {
         if (task.is_completed || !task.due_date) return false;
         const due = new Date(task.due_date);
         const diff = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
-        return diff >= 0 && diff <= 3;
+        return diff <= 3 && diff >= 0;
       })
-      .map((task) => ({
-        id: task.id,
-        message: `Görev "${task.title}" için ${task.due_date} tarihine ${Math.ceil(
-          (new Date(task.due_date) - today) / (1000 * 60 * 60 * 24)
-        )} gün kaldı.`,
-      }));
+      .map((task) => {
+        const due = new Date(task.due_date);
+        const diff = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+        return {
+          id: task.id,
+          title: task.title,
+          message: `Görev "${task.title}" için son ${diff} gün!`,
+        };
+      });
+
     setNotifications(updatedNotifications);
 
     // Bildirimleri AsyncStorage'a kaydet (navbarda okunması için)
-    AsyncStorage.setItem("taskNotifications", JSON.stringify(updatedNotifications));
+
+      await AsyncStorage.setItem(
+      "taskNotifications",
+      JSON.stringify(updatedNotifications)
+    );
   };
 
   return (

@@ -1,8 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
 import React, { useEffect, useState } from "react";
-import Layout from "../components/Layout.js";
-
 import {
   Alert,
   Button,
@@ -14,14 +11,20 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import axios from "axios";
+import { Picker } from "@react-native-picker/picker"; // 🌟
+
+import Layout from "../components/Layout.js";
 
 const ExpensePage = () => {
   const [expenses, setExpenses] = useState([]);
+  const [existingNames, setExistingNames] = useState([]); // 🌟
 
   const [modalVisible, setModalVisible] = useState(false);
   const [formData, setFormData] = useState({
     id: null,
-    name: "",
+    selectedName: "",
+    customName: "",
     amount: "",
     date: "",
   });
@@ -50,6 +53,10 @@ const ExpensePage = () => {
         },
       });
       setExpenses(response.data);
+
+      // 🌟 Tüm masraf adlarını benzersiz şekilde al
+      const names = [...new Set(response.data.map((e) => e.name))];
+      setExistingNames(names);
     } catch (error) {
       console.error("Expense fetch error:", error);
       Alert.alert("Hata", "Harcamalar getirilemedi.");
@@ -57,14 +64,15 @@ const ExpensePage = () => {
   };
 
   const openModalForNew = () => {
-    setFormData({ id: null, name: "", amount: "", date: "" });
+    setFormData({ id: null, selectedName: "", customName: "", amount: "", date: "" });
     setModalVisible(true);
   };
 
   const openModalForEdit = (expense) => {
     setFormData({
       id: expense.id,
-      name: expense.name,
+      selectedName: existingNames.includes(expense.name) ? expense.name : "Diğer",
+      customName: existingNames.includes(expense.name) ? "" : expense.name,
       amount: expense.amount.toString(),
       date: expense.date,
     });
@@ -79,22 +87,29 @@ const ExpensePage = () => {
   };
 
   const handleSubmit = async () => {
-    if (!formData.name || !formData.amount || !formData.date) {
+    const nameToUse =
+      formData.selectedName === "Diğer" ? formData.customName : formData.selectedName;
+
+    if (!nameToUse || !formData.amount || !formData.date) {
       Alert.alert("Hata", "Lütfen tüm alanları doldurun.");
       return;
     }
 
+    const dataToSend = {
+      name: nameToUse,
+      amount: parseFloat(formData.amount),
+      date: formData.date,
+    };
+
     try {
       if (formData.id) {
-        // Update
-        await axios.put(`${API_URL}${formData.id}/`, formData, {
+        await axios.put(`${API_URL}${formData.id}/`, dataToSend, {
           headers: {
             Authorization: `Token ${token}`,
           },
         });
       } else {
-        // Create
-        await axios.post(API_URL, formData, {
+        await axios.post(API_URL, dataToSend, {
           headers: {
             Authorization: `Token ${token}`,
           },
@@ -102,7 +117,7 @@ const ExpensePage = () => {
       }
       fetchExpenses(token);
       setModalVisible(false);
-      setFormData({ id: null, name: "", amount: "", date: "" });
+      setFormData({ id: null, selectedName: "", customName: "", amount: "", date: "" });
     } catch (error) {
       console.error("Submit error:", error);
       Alert.alert("Hata", "İşlem başarısız oldu.");
@@ -110,100 +125,114 @@ const ExpensePage = () => {
   };
 
   const handleDelete = (id) => {
-    Alert.alert(
-      t("Delete Expense"),
-      t("Are you sure you want to delete this expense?"),
-      [
-        { text: t("Cancel"), style: "cancel" },
-        {
-          text: t("Delete"),
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await axios.delete(`${API_URL}${id}/`, {
-                headers: {
-                  Authorization: `Token ${token}`,
-                },
-              });
-              fetchExpenses(token);
-            } catch (error) {
-              console.error("Delete error:", error);
-              Alert.alert("Hata", "Silme işlemi başarısız oldu.");
-            }
-          },
+    Alert.alert("Masraf Sil", "Bu masrafı silmek istediğinize emin misiniz?", [
+      { text: "İptal", style: "cancel" },
+      {
+        text: "Sil",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await axios.delete(`${API_URL}${id}/`, {
+              headers: {
+                Authorization: `Token ${token}`,
+              },
+            });
+            fetchExpenses(token);
+          } catch (error) {
+            console.error("Delete error:", error);
+            Alert.alert("Hata", "Silme işlemi başarısız oldu.");
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   return (
     <Layout>
-    <View style={styles.container}>
-      <Text style={styles.title}>Expenses</Text>
+      <View style={styles.container}>
+        <Text style={styles.title}>Masraflar</Text>
+        <Button title="Masraf Ekle" onPress={openModalForNew} />
 
-
-      <Button title="Add Expense" onPress={openModalForNew} />
-
-      <ScrollView style={styles.listContainer}>
-        {expenses.map((exp) => (
-          <View key={exp.id} style={styles.card}>
-            <Text style={styles.cardTitle}>{exp.name}</Text>
-            <Text>
-              Amount: {exp.amount} TL
-            </Text>
-            <Text>
-              Date: {exp.date}
-            </Text>
-            <View style={styles.cardButtons}>
-              <TouchableOpacity onPress={() => openModalForEdit(exp)} style={styles.editBtn}>
-                <Text style={styles.buttonText}>✏️</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDelete(exp.id)} style={styles.deleteBtn}>
-                <Text style={styles.buttonText}>🗑️</Text>
-              </TouchableOpacity>
+        <ScrollView style={styles.listContainer}>
+          {expenses.map((exp) => (
+            <View key={exp.id} style={styles.card}>
+              <Text style={styles.cardTitle}>{exp.name}</Text>
+              <Text>Amount: {exp.amount} TL</Text>
+              <Text>Date: {exp.date}</Text>
+              <View style={styles.cardButtons}>
+                <TouchableOpacity
+                  onPress={() => openModalForEdit(exp)}
+                  style={styles.editBtn}
+                >
+                  <Text style={styles.buttonText}>✏️</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => handleDelete(exp.id)}
+                  style={styles.deleteBtn}
+                >
+                  <Text style={styles.buttonText}>🗑️</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        ))}
-      </ScrollView>
+          ))}
+        </ScrollView>
 
-      <Modal visible={modalVisible} animationType="slide" transparent={true}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {formData.id ? "Update Expense" : "Add Expense"}
-            </Text>
+        <Modal visible={modalVisible} animationType="slide" transparent={true}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>
+                {formData.id ? "Masrafı Güncelle" : "Yeni Masraf"}
+              </Text>
 
-            <TextInput
-              style={styles.input}
-              placeholder="Expense Name"
-              value={formData.name}
-              onChangeText={(text) => handleChange("name", text)}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Amount"
-              keyboardType="numeric"
-              value={formData.amount}
-              onChangeText={(text) => handleChange("amount", text)}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder= "Date"
-              value={formData.date}
-              onChangeText={(text) => handleChange("date", text)}
-            />
+              <Text style={{ marginBottom: 5 }}>Masraf Adı:</Text>
 
-            <View style={styles.modalButtons}>
-              <Button title="Cancel" onPress={() => setModalVisible(false)} />
-              <Button
-                title={formData.id ? "Update": "Add"}
-                onPress={handleSubmit}
+              <Picker
+                selectedValue={formData.selectedName}
+                onValueChange={(itemValue) =>
+                  handleChange("selectedName", itemValue)
+                }
+              >
+                <Picker.Item label="Seçiniz" value="" />
+                {existingNames.map((name, index) => (
+                  <Picker.Item key={index} label={name} value={name} />
+                ))}
+                <Picker.Item label="Diğer" value="Diğer" />
+              </Picker>
+
+              {formData.selectedName === "Diğer" && (
+                <TextInput
+                  style={styles.input}
+                  placeholder="Masraf Adı Girin"
+                  value={formData.customName}
+                  onChangeText={(text) => handleChange("customName", text)}
+                />
+              )}
+
+              <TextInput
+                style={styles.input}
+                placeholder="Tutar"
+                keyboardType="numeric"
+                value={formData.amount}
+                onChangeText={(text) => handleChange("amount", text)}
               />
+              <TextInput
+                style={styles.input}
+                placeholder="Tarih"
+                value={formData.date}
+                onChangeText={(text) => handleChange("date", text)}
+              />
+
+              <View style={styles.modalButtons}>
+                <Button title="İptal" onPress={() => setModalVisible(false)} />
+                <Button
+                  title={formData.id ? "Güncelle" : "Ekle"}
+                  onPress={handleSubmit}
+                />
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
-    </View>
+        </Modal>
+      </View>
     </Layout>
   );
 };

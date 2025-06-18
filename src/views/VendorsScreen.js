@@ -11,7 +11,7 @@ const VendorsScreen = () => {
   const [loading, setLoading] = useState(true);
   const [newVendor, setNewVendor] = useState({ name: '', address: '', phone_number: '' });
   const [editingVendorId, setEditingVendorId] = useState(null);
-
+  
   // AsyncStorage veya context'ten alınmalı
 
   const fetchVendors = async () => {
@@ -87,7 +87,7 @@ const VendorsScreen = () => {
   return (
     <Layout>
     <View style={styles.container}>
-      <Text style={styles.header}>Vendor Ekle / Güncelle</Text>
+      <Text style={styles.header}>Satıcı Ekle </Text>
       <TextInput
         style={styles.input}
         placeholder="Ad"
@@ -108,7 +108,7 @@ const VendorsScreen = () => {
       />
       <Button title={editingVendorId ? 'Güncelle' : 'Ekle'} onPress={handleSaveVendor} />
 
-      <Text style={styles.header}>Vendor Listesi</Text>
+      <Text style={styles.header}>Satıcı Listesi</Text>
       <FlatList
         data={vendors}
         keyExtractor={(item) => item.id.toString()}

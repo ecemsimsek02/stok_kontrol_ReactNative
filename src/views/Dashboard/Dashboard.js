@@ -195,26 +195,45 @@ useEffect(() => {
 }, []);
 useEffect(() => {
   const now = new Date();
+
   const upcoming = tasks.filter((task) => {
     if (!task.dueDate || task.completed) return false;
+
     const due = new Date(task.dueDate);
-    const diffDays = (due - now) / (1000 * 3600 * 24);
+    if (isNaN(due)) return false; // Geçersiz tarihse filtreleme
+
+    const diffDays = Math.ceil((due - now) / (1000 * 3600 * 24));
     return diffDays >= 0 && diffDays <= 3;
   });
 
-  const notifications = upcoming.map((task, index) => ({
-    id: index,
-    message: `Görev "${task.text}" için son tarih 3 gün içinde.`,
-  }));
+  const notifications = upcoming.map((task, index) => {
+    const due = new Date(task.dueDate);
+    const diffDays = Math.ceil((due - now) / (1000 * 3600 * 24));
+
+    let dayMessage = "";
+    if (diffDays === 3) dayMessage = "3 gün kaldı.";
+    else if (diffDays === 2) dayMessage = "2 gün kaldı.";
+    else if (diffDays === 1) dayMessage = "1 gün kaldı.";
+    else if (diffDays === 0) dayMessage = "BUGÜN son gün!";
+    else if (diffDays < 0) dayMessage = "Süresi geçti.";
+
+    return {
+      id: index,
+      title: task.text,
+      due_date: task.dueDate,
+      message: `Görev "${task.text}" için ${dayMessage}`,
+    };
+  });
 
   setTaskNotifications(notifications);
 
   if (notifications.length > 0) {
     AsyncStorage.setItem("taskNotifications", JSON.stringify(notifications));
   } else {
-    AsyncStorage.removeItem("taskNotifications");  // ✅ Bildirimleri temizle
+    AsyncStorage.removeItem("taskNotifications");
   }
 }, [tasks]);
+
   // Tasklar için fonksiyonlar
   const handleAddTask = () => {
     if (!newTaskText.trim()) return;
@@ -269,8 +288,8 @@ useEffect(() => {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={80} // Navbar vs varsa burayı ayarlayabilirsin
+      behavior={Platform.OS === "ios" ?  "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}// Navbar vs varsa burayı ayarlayabilirsin
     >
       <ScrollView
         style={{ flex: 1, padding: 10 }}
