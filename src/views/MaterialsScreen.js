@@ -47,7 +47,7 @@ const MaterialsScreen = () => {
   const fetchMaterials = async (accessToken = token) => {
     try {
       const res = await axios.get(
-        "http://192.168.1.33:8000/stocks/api/materials/",
+        "https://stokkontrol-production.up.railway.app/stocks/api/materials/",
         {
           headers: {
             Authorization: `Token ${accessToken}`,
@@ -77,13 +77,13 @@ const MaterialsScreen = () => {
 
       if (editingMaterial) {
         await axios.put(
-          `http://192.168.1.33:8000/stocks/api/materials/${editingMaterial.id}/`,
+          `https://stokkontrol-production.up.railway.app/stocks/api/materials/${editingMaterial.id}/`,
           payload,
           authHeaders
         );
       } else {
         await axios.post(
-          "http://192.168.1.33:8000/stocks/api/materials/",
+          "https://stokkontrol-production.up.railway.app/stocks/api/materials/",
           payload,
           authHeaders
         );
@@ -106,7 +106,7 @@ const MaterialsScreen = () => {
   const handleDelete = async (id) => {
     try {
       await axios.delete(
-        `http://192.168.1.33:8000/stocks/api/materials/${id}/`,
+        `https://stokkontrol-production.up.railway.app/stocks/api/materials/${id}/`,
         authHeaders
       );
       fetchMaterials();

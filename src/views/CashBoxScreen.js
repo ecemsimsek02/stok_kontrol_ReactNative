@@ -52,8 +52,8 @@ const CashboxPage = () => {
   const [selectedParty, setSelectedParty] = useState("");
   const [customPartyName, setCustomPartyName] = useState("");
 
-  const CUSTOMER_API = "http://192.168.1.33:8000/accounts/api/customers/";
-  const VENDOR_API = "http://192.168.1.33:8000/accounts/api/vendors/";
+  const CUSTOMER_API = "https://stokkontrol-production.up.railway.app/accounts/api/customers/";
+  const VENDOR_API = "https://stokkontrol-production.up.railway.app/accounts/api/vendors/";
 
   const [formData, setFormData] = useState({
     id: null,
@@ -66,8 +66,8 @@ const CashboxPage = () => {
   const [role, setRole] = useState(null);
   const [token, setToken] = useState(null);
 
-  const API_URL = "http://192.168.1.33:8000/cash/transactions/";
-  const REGISTER_API = "http://192.168.1.33:8000/cash/cash_registers/";
+  const API_URL = "https://stokkontrol-production.up.railway.app/cash/transactions/";
+  const REGISTER_API = "https://stokkontrol-production.up.railway.app/cash/cash_registers/";
 
   useEffect(() => {
     const loadData = async () => {

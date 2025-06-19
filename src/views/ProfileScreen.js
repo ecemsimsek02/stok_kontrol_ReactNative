@@ -28,7 +28,7 @@ const ProfileScreen = () => {
 
     try {
       const response = await axios.get(
-        "http://192.168.1.33:8000/accounts/api/profiles/",
+        "https://stokkontrol-production.up.railway.app/accounts/api/profiles/",
         {
           headers: {
             Authorization: `Token ${token}`,
@@ -66,7 +66,7 @@ const ProfileScreen = () => {
 
     try {
       await axios.put(
-        `http://192.168.1.33:8000/accounts/profile/${editingProfileId}/update/`,
+        `https://stokkontrol-production.up.railway.app/accounts/profile/${editingProfileId}/update/`,
         formData,
         {
           headers: {
@@ -90,7 +90,7 @@ const ProfileScreen = () => {
 
     try {
       await axios.delete(
-        `http://192.168.1.33:8000/accounts/profiles/${id}/delete/`,
+        `https://stokkontrol-production.up.railway.app/accounts/profiles/${id}/delete/`,
         {
           headers: {
             Authorization: `Token ${token}`,

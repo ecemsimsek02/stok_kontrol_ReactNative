@@ -30,7 +30,7 @@ const InvoicesScreen = () => {
     quantity: "",
     shipping: "",
   });
-  const API_URL = "http://192.168.1.33:8000/invoice/api/invoices/";
+  const API_URL = "https://stokkontrol-production.up.railway.app/invoice/api/invoices/";
   const getAuthHeaders = async () => {
     try {
       const token = await AsyncStorage.getItem("access_token");
@@ -58,7 +58,7 @@ const InvoicesScreen = () => {
     try {
       const token = await AsyncStorage.getItem("access_token");
       const response = await axios.get(
-        "http://192.168.1.33:8000/accounts/api/customers/",
+        "https://stokkontrol-production.up.railway.app/accounts/api/customers/",
         {
           headers: { Authorization: `Token ${token}` },
         },
@@ -201,7 +201,7 @@ const InvoicesScreen = () => {
                       // React Native'de window.open yok, Linking kullanılabilir
                       // Bu örnek için Linking eklenmeli:
                       Linking.openURL(
-                        `http://192.168.1.33:8000/invoice/pdf/${invoice.id}/`,
+                        `https://stokkontrol-production.up.railway.app/invoice/pdf/${invoice.id}/`,
                       )
                     //Alert.alert("Not Implemented", "PDF indirme mobilde desteklenmiyor.")
                   }

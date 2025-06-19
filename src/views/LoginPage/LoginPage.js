@@ -20,7 +20,7 @@ const { width } = Dimensions.get("window");
 const LoginPage = () => {
   const { login } = useContext(AuthContext);
   useEffect(() => {
-  fetch("http://192.168.1.33:8000/")
+  fetch("https://stokkontrol-production.up.railway.app/")
     .then(res => console.log("Sunucu çalışıyor!", res.status))
     .catch(err => console.log("Sunucuya erişilemiyor:", err.message));
 }, []);
@@ -33,7 +33,7 @@ const LoginPage = () => {
   const handleLogin = async () => {
   try {
     const response = await axios.post(
-      "http://192.168.1.33:8000/api-token-auth/",
+      "https://stokkontrol-production.up.railway.app/api-token-auth/",
       {
         username,
         password,
@@ -46,7 +46,7 @@ const LoginPage = () => {
 
     // PROFİL BİLGİLERİ AL
     const profileResponse = await axios.get(
-      "http://192.168.1.33:8000/accounts/api/profiles/",
+      "https://stokkontrol-production.up.railway.app/accounts/api/profiles/",
       {
         headers: {
           Authorization: `Token ${token}`,
@@ -85,7 +85,7 @@ const LoginPage = () => {
         >
           <View style={styles.innerContainer}>
             <Image
-              source={require("./disinfectant-login.png")}
+              source={require("./image.png")}
               style={styles.image}
             />
 
@@ -109,7 +109,8 @@ const LoginPage = () => {
             {error !== "" && <Text style={styles.error}>{error}</Text>}
             <View style={styles.links}>
               <Text style={{ marginRight: 6 }}>Hesabınız yok mu?</Text>
-              <TouchableOpacity onPress={() => router.push("/RegisterScreen")}>
+              
+              <TouchableOpacity onPress={() =>{ console.log("Tıklandı");router.push("/register");}}>
                 <Text style={styles.linkText}>Kayıt Ol</Text>
               </TouchableOpacity>
             </View>

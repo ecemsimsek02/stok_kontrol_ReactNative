@@ -33,7 +33,7 @@ const TaskPage = () => {
   const fetchTasks = async () => {
     try {
       const token = await AsyncStorage.getItem("access_token");
-      const response = await axios.get("http://192.168.1.33:8000/tasks/", {
+      const response = await axios.get("https://stokkontrol-production.up.railway.app/tasks/", {
         headers: { Authorization: `Token ${token}` },
       });
       const data = Array.isArray(response.data)
@@ -60,7 +60,7 @@ const TaskPage = () => {
     try {
       const token = await AsyncStorage.getItem("access_token");
       await axios.post(
-        "http://192.168.1.33:8000/tasks/",
+        "https://stokkontrol-production.up.railway.app/tasks/",
         { title: newTaskTitle, due_date: newTaskDueDate },
         { headers: { Authorization: `Token ${token}` } }
       );
@@ -78,7 +78,7 @@ const TaskPage = () => {
     try {
       const token = await AsyncStorage.getItem("access_token");
       await axios.patch(
-        `http://192.168.1.33:8000/tasks/${taskId}/`,
+        `https://stokkontrol-production.up.railway.app/tasks/${taskId}/`,
         { title: updatedTitle },
         { headers: { Authorization: `Token ${token}` } }
       );
@@ -91,7 +91,7 @@ const TaskPage = () => {
   const handleDeleteTask = async (taskId) => {
     try {
       const token = await AsyncStorage.getItem("access_token");
-      await axios.delete(`http://192.168.1.33:8000/tasks/${taskId}/`, {
+      await axios.delete(`https://stokkontrol-production.up.railway.app/tasks/${taskId}/`, {
         headers: { Authorization: `Token ${token}` },
       });
       fetchTasks();
@@ -104,7 +104,7 @@ const TaskPage = () => {
     try {
       const token = await AsyncStorage.getItem("access_token");
       await axios.patch(
-        `http://192.168.1.33:8000/tasks/${task.id}/`,
+        `https://stokkontrol-production.up.railway.app/tasks/${task.id}/`,
         { is_completed: !task.is_completed },
         { headers: { Authorization: `Token ${token}` } }
       );

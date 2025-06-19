@@ -58,7 +58,7 @@ export default function Dashboard() {
     const fetchMaterials = async () => {
       try {
         const res = await axios.get(
-          "http://192.168.1.33:8000/stocks/api/materials/",
+          "https://stokkontrol-production.up.railway.app/stocks/api/materials/",
           authHeaders,
         );
         setMaterialData(res.data);
@@ -70,7 +70,7 @@ export default function Dashboard() {
     const fetchDisinfectants = async () => {
       try {
         const res = await axios.get(
-          "http://192.168.1.33:8000/stocks/api/disinfectants/",
+          "https://stokkontrol-production.up.railway.app/stocks/api/disinfectants/",
           authHeaders,
         );
         setDisinfectantData(res.data);
@@ -82,7 +82,7 @@ export default function Dashboard() {
     const fetchUser = async () => {
       try {
         const res = await axios.get(
-          "http://192.168.1.33:8000/accounts/api/user/",
+          "https://stokkontrol-production.up.railway.app/accounts/api/user/",
           authHeaders,
         );
         setUsername(res.data.username);
@@ -94,7 +94,7 @@ export default function Dashboard() {
     const fetchDeliveries = async () => {
       try {
         const res = await axios.get(
-          "http://192.168.1.33:8000/store/api/deliveries/",
+          "https://stokkontrol-production.up.railway.app/store/api/deliveries/",
           authHeaders,
         );
         const pending = res.data.filter((d) => !d.is_delivered);
@@ -107,7 +107,7 @@ export default function Dashboard() {
     const fetchNotifications = async () => {
       try {
         const res = await axios.get(
-          "http://192.168.1.33:8000/stocks/api/stock-alerts/",
+          "https://stokkontrol-production.up.railway.app/stocks/api/stock-alerts/",
           authHeaders,
         );
         if (Array.isArray(res.data.alerts)) {
@@ -123,7 +123,7 @@ export default function Dashboard() {
     const fetchTransactions = async () => {
       try {
         const response = await axios.get(
-          "http://192.168.1.33:8000/cash/transactions/",
+          "https://stokkontrol-production.up.railway.app/cash/transactions/",
           authHeaders,
         );
         setTransactions(response.data);
@@ -276,7 +276,7 @@ useEffect(() => {
   const handleMarkDelivered = async (id) => {
     try {
       await axios.get(
-        `http://192.168.1.33:8000/store/api/deliveries/${id}/mark_as_delivered/`,
+        `https://stokkontrol-production.up.railway.app/store/api/deliveries/${id}/mark_as_delivered/`,
         { headers: { Authorization: `Token ${token}` } },
       );
       setDeliveries((prev) => prev.filter((d) => d.id !== id));

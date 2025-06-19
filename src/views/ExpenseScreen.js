@@ -30,7 +30,7 @@ const ExpensePage = () => {
   });
   const [token, setToken] = useState(null);
 
-  const API_URL = "http://192.168.1.33:8000/cash/expenses/";
+  const API_URL = "https://stokkontrol-production.up.railway.app/cash/expenses/";
 
   useEffect(() => {
     const getTokenAndFetch = async () => {

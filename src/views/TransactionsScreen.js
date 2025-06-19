@@ -30,14 +30,14 @@ const TransactionsScreen = () => {
       };
 
       const [saleRes, invoiceRes, purchaseRes, billRes] = await Promise.all([
-        axios.get("http://192.168.1.33:8000/transactions/sale-transactions/", {
+        axios.get("https://stokkontrol-production.up.railway.app/transactions/sale-transactions/", {
           headers,
         }),
-        axios.get("http://192.168.1.33:8000/invoice/api/invoices/", { headers }),
-        axios.get("http://192.168.1.33:8000/transactions/purchase-transactions/", {
+        axios.get("https://stokkontrol-production.up.railway.app/invoice/api/invoices/", { headers }),
+        axios.get("https://stokkontrol-production.up.railway.app/transactions/purchase-transactions/", {
           headers,
         }),
-        axios.get("http://192.168.1.33:8000/bills/api/bills/", { headers }),
+        axios.get("https://stokkontrol-production.up.railway.app/bills/api/bills/", { headers }),
       ]);
 
       const invoiceMap = {};
@@ -74,8 +74,8 @@ const TransactionsScreen = () => {
       const token = await fetchToken();
       const url =
         type === "sale"
-          ? `http://192.168.1.33:8000/transactions/sale-transactions/${id}/`
-          : `http://192.168.1.33:8000/transactions/purchase-transactions/${id}/`;
+          ? `https://stokkontrol-production.up.railway.app/transactions/sale-transactions/${id}/`
+          : `https://stokkontrol-production.up.railway.app/transactions/purchase-transactions/${id}/`;
 
       await axios.patch(
         url,

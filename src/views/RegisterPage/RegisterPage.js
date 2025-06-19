@@ -12,21 +12,20 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-
-export default function RegisterScreen() {
+const RegisterPage = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
 
   const handleRegister = async () => {
     try {
-      await axios.post("http://192.168.1.33:8000/accounts/register/", {
+      await axios.post("https://stokkontrol-production.up.railway.app/accounts/register/", {
         username,
         password,
       });
 
       const tokenResponse = await axios.post(
-        "http://192.168.1.33:8000/api-token-auth/",
+        "https://stokkontrol-production.up.railway.app/api-token-auth/",
         { username, password },
       );
 
@@ -72,6 +71,7 @@ export default function RegisterScreen() {
   );
 }
 
+export default RegisterPage;
 const styles = StyleSheet.create({
   container: {
     flex: 1,

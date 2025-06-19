@@ -46,7 +46,7 @@ const AdminNavbarLinks = () => {
       try {
         const token = await AsyncStorage.getItem("access_token");
         const response = await axios.get(
-          "http://192.168.1.33:8000/stocks/api/stock-alerts/",
+          "https://stokkontrol-production.up.railway.app/stocks/api/stock-alerts/",
           {
             headers: { Authorization: `Token ${token}` },
           },

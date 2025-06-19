@@ -18,7 +18,7 @@ const VendorsScreen = () => {
     const token = await AsyncStorage.getItem("access_token");
     if (!token) return;
     try {
-      const res = await axios.get('http://192.168.1.33:8000/accounts/api/vendors/', {
+      const res = await axios.get('https://stokkontrol-production.up.railway.app/accounts/api/vendors/', {
         headers: { Authorization: `Token ${token}` },
       });
       setVendors(res.data);
@@ -32,8 +32,8 @@ const VendorsScreen = () => {
   const handleSaveVendor = async () => {
     const token = await AsyncStorage.getItem("access_token");
     const url = editingVendorId
-      ? `http://192.168.1.33:8000/accounts/vendors/${editingVendorId}/update/`
-      : 'http://192.168.1.33:8000/accounts/vendors/new/';
+      ? `https://stokkontrol-production.up.railway.app/accounts/vendors/${editingVendorId}/update/`
+      : 'https://stokkontrol-production.up.railway.app/accounts/vendors/new/';
 
     try {
       if (editingVendorId) {
@@ -56,7 +56,7 @@ const VendorsScreen = () => {
     return;
   }
      try {
-    const response = await axios.delete(`http://192.168.1.33:8000/accounts/vendors/${id}/delete/`, {
+    const response = await axios.delete(`https://stokkontrol-production.up.railway.app/accounts/vendors/${id}/delete/`, {
       headers: { Authorization: `Token ${token}` },
     });
 

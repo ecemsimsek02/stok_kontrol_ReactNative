@@ -28,7 +28,7 @@ export default function CustomersScreen() {
 
     try {
       const response = await axios.get(
-        'http://192.168.1.33:8000/accounts/api/customers/',
+        'https://stokkontrol-production.up.railway.app/accounts/api/customers/',
         {
           headers: { Authorization: `Token ${token}` },
         }
@@ -48,8 +48,8 @@ export default function CustomersScreen() {
     if (!token) return;
 
     const url = editingCustomerId
-      ? `http://192.168.1.33:8000/accounts/customers/${editingCustomerId}/update/`
-      : 'http://192.168.1.33:8000/accounts/customers/create/';
+      ? `https://stokkontrol-production.up.railway.app/accounts/customers/${editingCustomerId}/update/`
+      : 'https://stokkontrol-production.up.railway.app/accounts/customers/create/';
 
     try {
       await axios({
@@ -80,7 +80,7 @@ export default function CustomersScreen() {
 
     try {
       await axios.delete(
-        `http://192.168.1.33:8000/accounts/customers/${id}/delete/`,
+        `https://stokkontrol-production.up.railway.app/accounts/customers/${id}/delete/`,
         { headers: { Authorization: `Token ${token}` } }
       );
       setTimeout(() => {

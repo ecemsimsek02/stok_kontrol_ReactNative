@@ -57,7 +57,7 @@ const BillsScreen = () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        "http://192.168.1.33:8000/bills/api/bills/",
+        "https://stokkontrol-production.up.railway.app/bills/api/bills/",
         {
           headers: {
             Authorization: `Token ${tk}`,
@@ -112,14 +112,14 @@ const BillsScreen = () => {
     try {
       if (editingBill) {
         await axios.put(
-          `http://192.168.1.33:8000/bills/api/bills/${editingBill.id}/`,
+          `https://stokkontrol-production.up.railway.app/bills/api/bills/${editingBill.id}/`,
           formData,
           {
             headers: { Authorization: `Token ${token}` },
           }
         );
       } else {
-        await axios.post("http://192.168.1.33:8000/bills/api/bills/", formData, {
+        await axios.post("https://stokkontrol-production.up.railway.app/bills/api/bills/", formData, {
           headers: { Authorization: `Token ${token}` },
         });
       }
@@ -137,7 +137,7 @@ const BillsScreen = () => {
       return;
     }
     try {
-      await axios.delete(`http://192.168.1.33:8000/bills/api/bills/${id}/`, {
+      await axios.delete(`https://stokkontrol-production.up.railway.app/bills/api/bills/${id}/`, {
         headers: { Authorization: `Token ${token}` },
       });
       fetchBills(token);

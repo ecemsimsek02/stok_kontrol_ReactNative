@@ -33,7 +33,7 @@ const DeliveriesPage = () => {
   const fetchCustomers = async (token) => {
     try {
       const res = await axios.get(
-        "http://192.168.1.33:8000/accounts/api/customers/",
+        "https://stokkontrol-production.up.railway.app/accounts/api/customers/",
         { headers: { Authorization: `Token ${token}` } },
       );
       console.log("Gelen müşteri verisi:", res.data);
@@ -64,7 +64,7 @@ const DeliveriesPage = () => {
   const fetchDeliveries = async (accessToken) => {
     try {
       const res = await axios.get(
-        "http://192.168.1.33:8000/store/api/deliveries/",
+        "https://stokkontrol-production.up.railway.app/store/api/deliveries/",
         {
           headers: {
             Authorization: `Token ${accessToken}`,
@@ -94,14 +94,14 @@ const DeliveriesPage = () => {
 
       if (editingId) {
         await axios.put(
-          `http://192.168.1.33:8000/store/api/deliveries/${editingId}/`,
+          `https://stokkontrol-production.up.railway.app/store/api/deliveries/${editingId}/`,
           formData,
           headers,
         );
         setEditingId(null);
       } else {
         await axios.post(
-          "http://192.168.1.33:8000/store/api/deliveries/",
+          "https://stokkontrol-production.up.railway.app/store/api/deliveries/",
           formData,
           headers,
         );
@@ -136,7 +136,7 @@ const DeliveriesPage = () => {
   const handleDelete = async (id) => {
     try {
       await axios.delete(
-        `http://192.168.1.33:8000/store/api/deliveries/${id}/`,
+        `https://stokkontrol-production.up.railway.app/store/api/deliveries/${id}/`,
         {
           headers: {
             Authorization: `Token ${token}`,
@@ -152,7 +152,7 @@ const DeliveriesPage = () => {
   const handleMarkDelivered = async (id) => {
     try {
       await axios.get(
-        `http://192.168.1.33:8000/store/api/deliveries/${id}/mark_as_delivered/`,
+        `https://stokkontrol-production.up.railway.app/store/api/deliveries/${id}/mark_as_delivered/`,
         {
           headers: {
             Authorization: `Token ${token}`,

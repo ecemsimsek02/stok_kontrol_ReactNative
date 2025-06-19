@@ -43,9 +43,9 @@ const RecipeScreen = () => {
     const config = { headers: { Authorization: `Token ${t}` } };
     try {
       const [r, d, m] = await Promise.all([
-        axios.get("http://192.168.1.33:8000/stocks/api/recipes/", config),
-        axios.get("http://192.168.1.33:8000/stocks/api/disinfectants/", config),
-        axios.get("http://192.168.1.33:8000/stocks/api/materials/", config),
+        axios.get("https://stokkontrol-production.up.railway.app/stocks/api/recipes/", config),
+        axios.get("https://stokkontrol-production.up.railway.app/stocks/api/disinfectants/", config),
+        axios.get("https://stokkontrol-production.up.railway.app/stocks/api/materials/", config),
       ]);
       setRecipes(r.data);
       setDisinfectants(d.data);
@@ -60,14 +60,14 @@ const RecipeScreen = () => {
     try {
       if (editingId) {
         await axios.put(
-          `http://192.168.1.33:8000/stocks/api/recipes/${editingId}/update/`,
+          `https://stokkontrol-production.up.railway.app/stocks/api/recipes/${editingId}/update/`,
           formData,
           config
         );
         setEditingId(null);
       } else {
         await axios.post(
-          "http://192.168.1.33:8000/stocks/api/recipes/",
+          "https://stokkontrol-production.up.railway.app/stocks/api/recipes/",
           formData,
           config
         );
@@ -92,7 +92,7 @@ const RecipeScreen = () => {
     const config = { headers: { Authorization: `Token ${token}` } };
     try {
       await axios.delete(
-        `http://192.168.1.33:8000/stocks/api/recipes/${id}/delete/`,
+        `https://stokkontrol-production.up.railway.app/stocks/api/recipes/${id}/delete/`,
         config
       );
       fetchAll(token);
