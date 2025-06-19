@@ -3,6 +3,7 @@ projenin backend github linki: https://github.com/ecemsimsek02/stok_kontrol.git
 projenin react github linki: https://github.com/ecemsimsek02/stok_kontrol_frontend.git
 
 not:daha sonradan düzelttim ama apk dosyasını oluşturduğumda kayıt ol tuşu çalışmıyordu 
+(Kayıt ol tuşunun şuan çalıştığını göstermek için videonun sonuna ekledim)
 o yüzden aşağıda login olmak için gereken kullanıcı adı ve şifreler var
 
 giriş yapmak için kullanıcı ve şifreler:
