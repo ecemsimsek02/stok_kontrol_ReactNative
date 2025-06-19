@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useRouter } from "expo-router";
+import RegisterPage from "../RegisterPage/RegisterPage";
 import React, { useContext, useEffect, useState } from "react";
 import {
     Dimensions, Image,
@@ -29,7 +30,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
-
+  const [showRegister, setShowRegister] = useState(false);
   const handleLogin = async () => {
   try {
     const response = await axios.post(
@@ -72,6 +73,10 @@ const LoginPage = () => {
   }
 };
   //console.log(require("../../../../assets/images/disinfectant-login.png"));
+if (showRegister) {
+  return <RegisterPage />;
+}
+
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -110,9 +115,9 @@ const LoginPage = () => {
             <View style={styles.links}>
               <Text style={{ marginRight: 6 }}>Hesabınız yok mu?</Text>
               
-              <TouchableOpacity onPress={() =>{ console.log("Tıklandı");router.push("/register");}}>
-                <Text style={styles.linkText}>Kayıt Ol</Text>
-              </TouchableOpacity>
+               <TouchableOpacity onPress={() => setShowRegister(true)}>
+    <Text>Kayıt Ol</Text>
+  </TouchableOpacity>
             </View>
           </View>
         </ScrollView>

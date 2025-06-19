@@ -13,6 +13,7 @@ import {
     View,
 } from "react-native";
 const RegisterPage = () => {
+  console.log("RegisterPage açıldı");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
